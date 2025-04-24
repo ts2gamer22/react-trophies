@@ -1,25 +1,25 @@
-<h1 align="center">🏆 React-Achievements 🏆</h1>
+<h1 align="center">🏆 React-Achievements-Zustand 🏆</h1>
 
-A flexible and customizable achievement system for React applications, perfect for adding gamification elements to your projects.
+A flexible and customizable achievement system for React applications using Zustand for state management, perfect for adding gamification elements to your projects.
 
 ![React Achievements Demo](https://github.com/dave-b-b/react-achievements/blob/main/images/demo.gif?raw=true)
 
 If you want to test the package, you can try it out here:
 
-https://stackblitz.com/edit/vitejs-vite-sccdux
+https://stackblitz.com/edit/vitejs-vite-rymmutrx
 
 <h2 align="center">🚀 Installation</h2>
 
 Install `react-achievements` using npm or yarn:
 
 ```bash
-npm install react react-dom @reduxjs/toolkit react-achievements
+npm install react react-dom zustand react-achievements-zustand
 ```
 
 or
 
 ```bash
-yarn add react react-dom @reduxjs/toolkit react-achievements
+yarn add react react-dom zustand react-achievements-zustand
 ```
 
 <h2 align="center">🎮 Usage</h2>
@@ -32,9 +32,7 @@ First, wrap your app or a part of your app with the AchievementProvider:
 
 ```jsx
 import React from 'react';
-import { Provider } from 'react-redux';
-import store from './store'; // Import the Redux store you will create
-import { AchievementProvider } from 'react-achievements';
+import { AchievementProvider } from 'react-achievements-zustand';
 import Game from './Game'; // Your main game component
 import achievementConfig from './achievementConfig'; // Your achievement configuration
 
@@ -49,119 +47,27 @@ const initialState = {
 
 function App() {
     return (
-        <Provider store={store}>
-            <AchievementProvider
-                config={achievementConfig} // Required: your achievement configuration
-                initialState={initialState} // Required: initial game metrics and optionally previously awarded achievements. This can be loaded from your server
-                storageKey="my-game-achievements" // Optional: customize local storage key
-                badgesButtonPosition="top-right" // Optional: customize badges button position
-                // Optional: add custom styles and icons here
-            >
-                <Game />
-            </AchievementProvider>
-        </Provider>
+        <AchievementProvider
+            config={achievementConfig} // Required: your achievement configuration
+            initialState={initialState} // Required: initial game metrics and optionally previously awarded achievements. This can be loaded from your server
+            storageKey="my-game-achievements" // Optional: customize local storage key
+            badgesButtonPosition="top-right" // Optional: customize badges button position
+            // Optional: add custom styles and icons here
+        >
+            <Game />
+        </AchievementProvider>
     );
 }
 
 export default App;
 ```
 
-<h3 align="center">🛠 Set up the Store</h3>
-
-You need to create a store for you state
-
-```tsx
-// src/store.ts
-// src/store.js
-
-import { configureStore } from '@reduxjs/toolkit';
-import achievementReducer from 'react-achievements/redux/achievementSlice';
-import notificationReducer from 'react-achievements/redux/notificationSlice';
-
-const store = configureStore({
-  reducer: {
-    achievements: achievementReducer,
-    notifications: notificationReducer,
-  },
-});
-
-// If you are using JavaScript, you don't need to explicitly export RootState and AppDispatch types.
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-
-export default store;
-```
-
-<h3 align="center">📝 Create an achievement configuration</h3>
-
-Create a file (e.g., achievementConfig.js) to define your achievements:
-
-```javascript
-// achievementConfig.js
-import levelUpIcon from './icons/level-up.png';
-import monsterSlayerIcon from './icons/monster-slayer.png';
-import questMasterIcon from './icons/quest-master.png';
-
-const achievementConfig = {
-    level: [
-        {
-            isConditionMet: (value) => value >= 1,
-            achievementDetails: {
-                achievementId: 'level_1',
-                achievementTitle: 'Novice Adventurer',
-                achievementDescription: 'Reached level 1',
-                achievementIconKey: 'levelUpIcon', 
-            },
-        },
-        {
-            isConditionMet: (value) => value >= 5,
-            achievementDetails: {
-                achievementId: 'level_5',
-                achievementTitle: 'Seasoned Warrior',
-                achievementDescription: 'Reached level 5',
-                achievementIconKey: 'levelUpIcon',
-            },
-        },
-    ],
-    monstersDefeated: [
-        {
-            isConditionMet: (value) => value >= 10,
-            achievementDetails: {
-                achievementId: 'monster_slayer',
-                achievementTitle: 'Monster Slayer',
-                achievementDescription: 'Defeated 10 monsters',
-                achievementIconKey: 'monsterSlayerIcon',
-            },
-        },
-    ],
-    questsCompleted: [
-        {
-            isConditionMet: (value) => value >= 1,
-            achievementDetails: {
-                achievementId: 'quest_master',
-                achievementTitle: 'Quest Master',
-                achievementDescription: 'Completed 1 quest',
-                achievementIconKey: 'questMasterIcon',
-            },
-        },
-    ],
-};
-
-export default achievementConfig;
-```
-
-Key points:
-
-- `isConditionMet`: A function that determines if an achievement should be unlocked.
-- `achievementDetails`: An object containing the details of the achievement.
-- `achievementIconKey`: A string used to reference the icon in the `AchievementProvider`'s icons prop. A list of icons are already provided by the library.
-
 <h3 align="center">🎣 Use the useAchievement hook</h3>
 
 In your game components, use the useAchievement hook to update metrics and trigger achievement checks:
 ```jsx
 import React, { useState } from 'react';
-import { useAchievement } from 'react-achievements';
+import { useAchievement } from 'react-achievements-zustand';
 
 function Game() {
     const { setMetrics, metrics } = useAchievement();
@@ -225,7 +131,7 @@ export default Game;
 
 - Flexible Achievement System: Define custom metrics and achievement conditions for your game or app.
 - Built with TypeScript: Provides strong typing and improved developer experience.
-- Redux-Powered State Management: Leverages Redux for predictable and scalable state management of achievements and metrics.
+- Zustand-Powered State Management: Leverages Zustand for predictable and scalable state management of achievements and metrics.
 - Automatic Achievement Tracking: Achievements are automatically checked and unlocked when metrics change.
 - Achievement Notifications: A modal pops up when an achievement is unlocked, perfect for rewarding players.
 - Persistent Achievements: Unlocked achievements and metrics are stored in local storage, allowing players to keep their progress.
@@ -252,8 +158,8 @@ export default Game;
 #### Returns an object with:
 
 - `updateMetrics`: Function to update the metrics. Accepts either a new metrics object or a function that receives the previous metrics and returns the new metrics.
-- `unlockedAchievements`: Array of unlocked achievement IDs. (Note: Access the actual Redux state using `useSelector`).
-- `resetStorage`: Function to clear all achievement data from local storage and reset the Redux state.
+- `unlockedAchievements`: Array of unlocked achievement IDs managed by Zustand.
+- `resetStorage`: Function to clear all achievement data from local storage and reset the state.
 
 <h3 align="center">🪝 useAchievementState Hook</h3>
 <h4 align="center">Returns an object containing the current achievement state, useful for saving to a server or other persistent storage.
@@ -269,7 +175,7 @@ export default Game;
 
 ```jsx
 import React from 'react';
-import { useAchievementState } from 'react-achievements';
+import { useAchievementState } from 'react-achievements-zustand';
 
 const SyncAchievementsButton = () => {
     const { metrics, previouslyAwardedAchievements } = useAchievementState();
@@ -444,13 +350,13 @@ badgesButton: {
 
 <h2 align="center">Resetting React Achievements</h2>
 
-The achievements and metrics are managed by Redux and persisted in local storage. You have two primary ways to reset the achievement system:
+The achievements and metrics are managed by Zustand and persisted in local storage. You have two primary ways to reset the achievement system:
 
 1.  **Programmatic Reset:** Use the `resetStorage` function provided by the `useAchievementContext` hook within your components:
 
 ```jsx
     import React from 'react';
-    import { useAchievementContext } from 'react-achievements';
+    import { useAchievementContext } from 'react-achievements-zustand';
 
     function ResetButton() {
       const { resetStorage } = useAchievementContext();
@@ -466,12 +372,12 @@ The achievements and metrics are managed by Redux and persisted in local storage
 
 <h2 align="center">💾 Saving and Loading Progress</h2>
 
-<h4 align="center">To persist user achievement progress across sessions or devices, you'll typically want to save the `metrics` and `previouslyAwardedAchievements` from your Redux store to your server. You can use the `useAchievementState` hook to access this data and trigger the save operation, for example, when the user logs out:
+s<h4 align="center">To persist user achievement progress across sessions or devices, you'll typically want to save the `metrics` and `previouslyAwardedAchievements` from your Zustand store to your server. You can use the `useAchievementState` hook to access this data and trigger the save operation, for example, when the user logs out:
 </h4>
 
 ```jsx
 import React from 'react';
-import { useAchievementState } from 'react-achievements/hooks/useAchievementState';
+import { useAchievementState } from 'react-achievements-zustand/hooks/useAchievementState';
 
 const LogoutButtonWithSave = ({ onLogout }) => {
     const { metrics, previouslyAwardedAchievements } = useAchievementState();
@@ -616,3 +522,108 @@ export default LogoutButtonWithSave;
 MIT
 
 React-Achievements provides a comprehensive achievement system for React applications, perfect for adding gamification elements to your projects. Whether you're building a game, an educational app, or any interactive experience, this package offers an easy way to implement and manage achievements, enhancing user engagement and retention.
+
+<h2 align="center">📥 Exporting and Importing Achievement State</h2>
+
+You can export the current state of achievements to save it to your server and later import it back. Here's how:
+
+### Exporting the State
+
+To export the current state, use the `useAchievementStore` hook directly:
+
+```jsx
+import { useAchievementStore } from 'react-achievements-zustand';
+
+const ExportStateButton = () => {
+    const store = useAchievementStore();
+    
+    const handleExport = () => {
+        // Get the complete state
+        const state = {
+            metrics: store.metrics,
+            unlockedAchievements: store.unlockedAchievements,
+            previouslyAwardedAchievements: store.previouslyAwardedAchievements,
+            notifications: store.notifications,
+            isInitialized: store.isInitialized
+        };
+        
+        // You can now save this state to your server
+        saveToServer(state);
+    };
+
+    return <button onClick={handleExport}>Export Achievement State</button>;
+};
+```
+
+### Importing the State
+
+To import a previously saved state, provide it in the `initialState` prop of the `AchievementProvider`:
+
+```jsx
+import { AchievementProvider } from 'react-achievements-zustand';
+
+// This could be loaded from your server
+const savedState = {
+    metrics: {
+        level: 5,
+        experience: 1000,
+        // ... other metrics
+    },
+    previouslyAwardedAchievements: ['achievement1', 'achievement2'],
+    // You can include other state properties if needed
+};
+
+function App() {
+    return (
+        <AchievementProvider
+            config={achievementConfig}
+            initialState={savedState}
+            storageKey="my-game-achievements"
+        >
+            <Game />
+        </AchievementProvider>
+    );
+}
+```
+
+### Best Practices
+
+1. When exporting state, consider what data you need to persist:
+   - `metrics`: Required for tracking progress
+   - `unlockedAchievements`: Required for maintaining achievement status. This is used to trigger achievements as they are earned
+   - `previouslyAwardedAchievements`: Required for historical records
+   - `notifications`: Optional, typically not needed to persist
+   - `isInitialized`: Optional, will be set automatically on provider mount
+
+2. When importing state, the minimum required properties in `initialState` are:
+   - `metrics`: Your achievement metrics
+   - `previouslyAwardedAchievements`: Previously awarded achievements
+
+3. Consider implementing automatic state sync:
+
+```jsx
+import { useAchievementStore } from 'react-achievements-zustand';
+import { useEffect } from 'react';
+
+const AutoSyncAchievements = () => {
+    const store = useAchievementStore();
+
+    useEffect(() => {
+        // Set up an interval to sync state periodically
+        const syncInterval = setInterval(() => {
+            const stateToSync = {
+                metrics: store.metrics,
+                unlockedAchievements: store.unlockedAchievements,
+                previouslyAwardedAchievements: store.previouslyAwardedAchievements
+            };
+            
+            // Your sync logic here
+            saveToServer(stateToSync);
+        }, 5 * 60 * 1000); // Every 5 minutes
+
+        return () => clearInterval(syncInterval);
+    }, [store]);
+
+    return null; // This is a utility component, it doesn't render anything
+};
+```
