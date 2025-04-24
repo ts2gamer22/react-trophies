@@ -1,6 +1,6 @@
 {
   "name": "react-achievements-zustand",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "This package allows users to transpose a React achievements engine over their React apps using Zustand for state management",
   "keywords": [
     "react",
