@@ -24,7 +24,7 @@ interface AchievementState {
     markAchievementAsAwarded: (achievementId: string) => void;
     resetAchievements: () => void;
     addNotification: (notification: AchievementDetails) => void;
-    clearNotifications: () => void;
+    clearNotifications: (displayedNotifications: AchievementDetails[]) => void;
 }
 
 export const useAchievementStore = create<AchievementState>((set, get) => ({
@@ -150,7 +150,14 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
         set({ notifications: [...state.notifications, notification] });
     },
 
-    clearNotifications: () => {
-        set({ notifications: [] });
+    clearNotifications: (displayedNotifications) => {
+        const state = get();
+        // Filter out only the notifications that were just displayed
+        const remainingNotifications = state.notifications.filter(notification => 
+            !displayedNotifications.some(displayed => 
+                displayed.achievementId === notification.achievementId
+            )
+        );
+        set({ notifications: remainingNotifications });
     },
 }));

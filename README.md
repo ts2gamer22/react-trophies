@@ -217,9 +217,6 @@ React-Achievements allows for extensive customization of its appearance. You can
 
 ```jsx
 const customStyles = {
-  achievementModal: {
-    // Custom styles for the achievement modal below
-  },
   badgesModal: {
     // Custom styles for the badges modal below
   },
@@ -241,16 +238,38 @@ function App() {
 }
 ```
 
-### achievementModal (to be passed in as a customStyle above)
+### Achievement Notifications
 
-Customizes the modal that appears when an achievement is unlocked.
+Achievement notifications are powered by react-toastify and can be customized using CSS. Add your custom styles to target the Toastify classes:
 
+```css
+.Toastify__toast {
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  border-radius: 10px;
+}
+
+.Toastify__toast-body {
+  font-family: Arial, sans-serif;
+}
+
+.Toastify__progress-bar {
+  background: #27ae60;
+}
 ```
-achievementModal: {
+
+### badgesModal
+
+```js
+badgesModal: {
   overlay: {
-    // Styles for the modal overlay (background)
+    // Styles for the modal overlay
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    // You can also customize other overlay properties like zIndex, transition, etc.
   },
   content: {
     // Styles for the modal content container
@@ -258,49 +277,12 @@ achievementModal: {
     color: '#ffffff',
     borderRadius: '10px',
     padding: '20px',
-    // Add any other CSS properties for the content container
-  },
-  title: {
-    // Styles for the achievement title
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#ffd700',
-  },
-  icon: {
-    // Styles for the achievement icon
-    width: '64px',
-    height: '64px',
-    marginBottom: '10px',
-  },
-  description: {
-    // Styles for the achievement description
-    fontSize: '16px',
-    marginTop: '10px',
-  },
-  button: {
-    // Styles for the close button
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-}
-```
-
-### badgesModal (to be passed in as a customStyle above)
-
-```
-badgesModal: {
-  overlay: {
-    // Similar to achievementModal overlay
-  },
-  content: {
-    // Similar to achievementModal content
   },
   title: {
     // Styles for the modal title
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#ffd700',
   },
   badgeContainer: {
     // Styles for the container holding all badges
@@ -324,15 +306,20 @@ badgesModal: {
     marginTop: '5px',
   },
   button: {
-    // Styles for the close button (similar to achievementModal button)
+    // Styles for the close button
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
   },
 }
 ```
 
+### badgesButton
 
-### badgesButton (to be passed in as a customStyle above)
-
-```
+```js
 badgesButton: {
   // Styles for the floating badges button
   position: 'fixed',
@@ -343,9 +330,7 @@ badgesButton: {
   borderRadius: '5px',
   cursor: 'pointer',
   zIndex: 1000,
-  // You can add more CSS properties as needed. These are just regular CSS
 }
-
 ```
 
 <h2 align="center">Resetting React Achievements</h2>
