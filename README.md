@@ -22,6 +22,33 @@ or
 yarn add react react-dom zustand react-achievements-zustand
 ```
 
+<h2 align="center">✨ Features</h2>
+
+- **Flexible Achievement System**: Define custom metrics and achievement conditions for your game or app
+- **Built with TypeScript**: Provides strong typing and improved developer experience
+- **Zustand-Powered State Management**: Leverages Zustand for predictable and scalable state management
+- **Robust Metric Tracking**: 
+  - Supports multiple metric updates simultaneously
+  - Handles rapid sequential updates correctly
+  - Preserves metric history in arrays
+  - Evaluates achievements based on latest metric values
+- **Smart Achievement Notifications**: 
+  - Shows multiple achievements simultaneously when unlocked together
+  - Toast notifications powered by react-toastify
+  - Configurable display duration and appearance
+- **Race Condition Handling**:
+  - Properly handles simultaneous achievement unlocks
+  - Manages sequential rapid updates correctly
+  - Prevents duplicate achievements
+- **Persistent Storage**: 
+  - Achievements and metrics stored in localStorage
+  - Support for loading previously awarded achievements
+- **UI Components**:
+  - Achievement notifications with customizable icons
+  - Badges gallery modal
+  - Confetti celebration effects
+  - Fully customizable styles
+
 <h2 align="center">🎮 Usage</h2>
 
 Let's walk through setting up a simple RPG-style game with achievements using React-Achievements.
@@ -127,120 +154,43 @@ function Game() {
 export default Game;
 ```
 
-<h2 align="center">✨ Features</h2>
+<h2 align="center">🔍 Achievement Evaluation</h2>
 
-- Flexible Achievement System: Define custom metrics and achievement conditions for your game or app.
-- Built with TypeScript: Provides strong typing and improved developer experience.
-- Zustand-Powered State Management: Leverages Zustand for predictable and scalable state management of achievements and metrics.
-- Automatic Achievement Tracking: Achievements are automatically checked and unlocked when metrics change.
-- Achievement Notifications: A modal pops up when an achievement is unlocked, perfect for rewarding players.
-- Persistent Achievements: Unlocked achievements and metrics are stored in local storage, allowing players to keep their progress.
-- Achievement Gallery: Players can view all their unlocked achievements, encouraging completionism.
-- Confetti Effect: A celebratory confetti effect is displayed when an achievement is unlocked, adding to the excitement.
-- Local Storage: Achievements are stored locally on the device.
-- **Loading Previous Awards:** The AchievementProvider accepts an optional previouslyAwardedAchievements array in its initialState prop, allowing you to load achievements that the user has already earned.
-- **Programmatic Reset:** Includes a `resetStorage` function accessible via the `useAchievementContext` hook to easily reset all achievement data.
+Achievements are evaluated based on the latest value of each metric. When updating metrics:
 
-<h2 align="center">🔧 API</h2>
+```javascript
+// Single metric update
+updateMetrics({
+    score: [100]  // Sets score to 100
+});
 
-<h3 align="center">🏗 AchievementProvider</h3>
+// Multiple simultaneous updates
+updateMetrics({
+    score: [100],
+    combo: [5],
+    time: [60]
+});
 
-#### Props:
-
-- `config`: An object defining your metrics and achievements.
-- `initialState`: The initial state of your metrics. Can also include an optional previouslyAwardedAchievements array of achievement IDs.
-- `storageKey` (optional): A string to use as the key for localStorage. Default: 'react-achievements'
-- `badgesButtonPosition` (optional): Position of the badges button. Default: 'top-right'
-- `styles` (optional): Custom styles for the achievement components.
-
-<h3 align="center">🪝 useAchievement Hook</h3>
-
-#### Returns an object with:
-
-- `updateMetrics`: Function to update the metrics. Accepts either a new metrics object or a function that receives the previous metrics and returns the new metrics.
-- `unlockedAchievements`: Array of unlocked achievement IDs managed by Zustand.
-- `resetStorage`: Function to clear all achievement data from local storage and reset the state.
-
-<h3 align="center">🪝 useAchievementState Hook</h3>
-<h4 align="center">Returns an object containing the current achievement state, useful for saving to a server or other persistent storage.
-</h4>
-
-
-#### Returns an object with:
-
-- `metrics`: The current achievement metrics object.
-- `previouslyAwardedAchievements`: An array of achievement IDs that have been previously awarded to the user.
-
-**Example Usage:**
-
-```jsx
-import React from 'react';
-import { useAchievementState } from 'react-achievements-zustand';
-
-const SyncAchievementsButton = () => {
-    const { metrics, previouslyAwardedAchievements } = useAchievementState();
-
-    const handleSaveToServer = async () => {
-        const achievementData = {
-            metrics,
-            previouslyAwardedAchievements,
-        };
-        try {
-            const response = await fetch('/api/save-achievements', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(achievementData),
-            });
-            if (response.ok) {
-                console.log('Achievement data saved successfully!');
-            } else {
-                console.error('Failed to save achievement data.');
-            }
-        } catch (error) {
-            console.error('Error saving achievement data:', error);
-        }
-    };
-
-    return (
-        <button onClick={handleSaveToServer}>Save Achievements to Server</button>
-    );
-};
-
-export default SyncAchievementsButton;
+// Sequential updates (all properly tracked)
+updateMetrics({ score: [10] });
+setTimeout(() => updateMetrics({ score: [50] }), 100);
+setTimeout(() => updateMetrics({ score: [100] }), 200);
 ```
 
-<h2 align="center">🎨 Customization</h2>
+Each metric update:
+1. Preserves the metric history in arrays
+2. Triggers achievement checks using the latest values
+3. Shows notifications for all unlocked achievements simultaneously
 
-React-Achievements allows for extensive customization of its appearance. You can override the default styles by passing a `styles` prop to the `AchievementProvider`:
+<h2 align="center">🎯 Achievement Notifications</h2>
 
-```jsx
-const customStyles = {
-  badgesModal: {
-    // Custom styles for the badges modal below
-  },
-  badgesButton: {
-    // Custom styles for the badges button below
-  },
-};
+Achievement notifications are powered by react-toastify and will:
+- Display multiple achievements simultaneously when unlocked together
+- Show custom icons for each achievement type
+- Auto-dismiss after a configurable duration
+- Support custom styling via CSS
 
-function App() {
-  return (
-    <AchievementProvider 
-      config={achievementConfig} 
-      initialState={initialState}
-      styles={customStyles}
-    >
-      <Game />
-    </AchievementProvider>
-  );
-}
-```
-
-### Achievement Notifications
-
-Achievement notifications are powered by react-toastify and can be customized using CSS. Add your custom styles to target the Toastify classes:
+### Achievement Notifications Custom CSS
 
 ```css
 .Toastify__toast {
