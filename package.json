@@ -23,7 +23,7 @@
     "@chromatic-com/storybook": "^1.6.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^6.4.8",
+    "@mui/icons-material": "^6.4.11",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^6.0.2",
@@ -40,16 +40,22 @@
     "@types/node": "^20.14.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/react-toastify": "^4.0.2",
     "rollup": "^4.19.0",
+    "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "storybook": "^8.6.8",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {
-    "zustand": "^4.0.0",
     "react": "^18.0.0",
     "react-confetti": "^6.0.0",
     "react-dom": "^18.0.0",
-    "react-use": "^17.0.0"
+    "react-toastify": "^9.0.0",
+    "react-use": "^17.0.0",
+    "zustand": "^4.0.0"
+  },
+  "dependencies": {
+    "@mui/material": "^7.0.2"
   }
 }

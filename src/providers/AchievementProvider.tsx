@@ -1,4 +1,6 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
     AchievementDetails,
     AchievementMetricValue,
@@ -10,11 +12,11 @@ import {
     AchievementUnlockCondition,
 } from '../types';
 import { useAchievementStore } from '../store/useAchievementStore';
-import AchievementModal from '../components/AchievementModal';
 import BadgesButton from '../components/BadgesButton';
 import BadgesModal from '../components/BadgesModal';
 import ConfettiWrapper from '../components/ConfettiWrapper';
 import { defaultStyles } from '../defaultStyles';
+import { defaultAchievementIcons } from '../assets/defaultIcons';
 
 export interface AchievementContextType {
     updateMetrics: (newMetrics: AchievementMetrics | ((prevMetrics: AchievementMetrics) => AchievementMetrics)) => void;
@@ -56,14 +58,32 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
         resetAchievements
     } = useAchievementStore();
 
-    const [currentAchievement, setCurrentAchievement] = useState<AchievementDetails | null>(null);
     const [showBadges, setShowBadges] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
     const serializeConfig = (config: AchievementConfiguration): SerializedAchievementConfiguration => {
         const serializedConfig: SerializedAchievementConfiguration = {};
         Object.entries(config).forEach(([metricName, conditions]) => {
-            serializedConfig[metricName] = (conditions as AchievementUnlockCondition<AchievementMetricValue>[]).map((condition: AchievementUnlockCondition<AchievementMetricValue>) => {
+            if (!Array.isArray(conditions)) {
+                console.error(`Invalid conditions for metric ${metricName}: expected array, got ${typeof conditions}`);
+                return;
+            }
+
+            serializedConfig[metricName] = conditions.map((condition: AchievementUnlockCondition<AchievementMetricValue>) => {
+                if (!condition || typeof condition.isConditionMet !== 'function') {
+                    console.error(`Invalid condition for metric ${metricName}: missing isConditionMet function`);
+                    return {
+                        achievementDetails: {
+                            achievementId: 'invalid',
+                            achievementTitle: 'Invalid Achievement',
+                            achievementDescription: 'Invalid condition',
+                            achievementIconKey: 'error'
+                        },
+                        conditionType: 'number',
+                        conditionValue: 0
+                    };
+                }
+
                 // Analyze the isConditionMet function to determine type and value
                 const funcString = condition.isConditionMet.toString();
                 let conditionType: 'number' | 'string' | 'boolean' | 'date';
@@ -106,9 +126,12 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
         if (!isInitialized) return;
 
         const newAchievements: AchievementDetails[] = [];
+        
         Object.entries(serializedConfig).forEach(([metricName, conditions]) => {
             const metricValues = metrics[metricName];
-            if (!metricValues) return;
+            if (!Array.isArray(metricValues)) {
+                return;
+            }
 
             conditions.forEach((condition) => {
                 const isConditionMet = (value: AchievementMetricValue) => {
@@ -127,8 +150,9 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                     }
                 };
 
+                const latestValue = metricValues[metricValues.length - 1];
                 if (
-                    metricValues.some((value: AchievementMetricValue) => isConditionMet(value)) &&
+                    isConditionMet(latestValue) &&
                     !unlockedAchievementIds.includes(condition.achievementDetails.achievementId) &&
                     !previouslyAwardedAchievements.includes(condition.achievementDetails.achievementId)
                 ) {
@@ -167,10 +191,39 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
 
     // Handle notifications
     useEffect(() => {
-        if (notifications.length > 0 && !currentAchievement) {
-            setCurrentAchievement(notifications[0]);
+        if (notifications.length > 0) {
+            notifications.forEach(achievement => {
+                const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
+                const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons ? 
+                    mergedIcons[achievement.achievementIconKey] : 
+                    mergedIcons.default;
+
+                toast(
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ fontSize: '2em', marginRight: '10px' }}>{iconToDisplay}</span>
+                        <div>
+                            <div style={{ fontWeight: 'bold' }}>{achievement.achievementTitle}</div>
+                            <div>{achievement.achievementDescription}</div>
+                        </div>
+                    </div>,
+                    {
+                        position: "top-right",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined
+                    }
+                );
+            });
+
+            clearNotifications();
+            
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
         }
-    }, [notifications, currentAchievement]);
+    }, [notifications, icons, clearNotifications]);
 
     const showBadgesModal = () => setShowBadges(true);
 
@@ -183,7 +236,14 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                         const updatedMetrics = newMetrics(metrics);
                         setMetrics(updatedMetrics);
                     } else {
-                        setMetrics(newMetrics);
+                        // Properly merge arrays for each metric key
+                        const mergedMetrics = Object.entries(newMetrics).reduce((acc, [key, value]) => ({
+                            ...acc,
+                            [key]: Array.isArray(metrics[key]) 
+                                ? [...metrics[key], ...value]  
+                                : value  
+                        }), { ...metrics });
+                        setMetrics(mergedMetrics);
                     }
                 },
                 unlockedAchievements: unlockedAchievementIds,
@@ -194,18 +254,8 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
             }}
         >
             {children}
+            <ToastContainer />
             <ConfettiWrapper show={showConfetti} />
-            <AchievementModal
-                isOpen={!!currentAchievement}
-                achievement={currentAchievement}
-                onClose={() => {
-                    setCurrentAchievement(null);
-                    clearNotifications();
-                    setShowConfetti(false);
-                }}
-                styles={styles.achievementModal || defaultStyles.achievementModal}
-                icons={icons}
-            />
             <BadgesButton
                 onClick={showBadgesModal}
                 position={badgesButtonPosition}

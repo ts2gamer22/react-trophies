@@ -13,7 +13,7 @@ const TestComponent = () => {
     const { metrics, updateMetrics } = useAchievement();
 
     const triggerMultipleAchievements = () => {
-        // Update multiple metrics simultaneously
+        // Update multiple metrics simultaneously in a single update
         updateMetrics({
             score: [100],
             time: [60],
@@ -23,9 +23,23 @@ const TestComponent = () => {
 
     const triggerRapidAchievements = () => {
         // Rapidly update metrics in succession
-        updateMetrics({ score: [10] });
-        setTimeout(() => updateMetrics({ time: [20] }), 100);
-        setTimeout(() => updateMetrics({ combo: [3] }), 200);
+        updateMetrics({
+            score: [10]
+        });
+        
+        setTimeout(() => {
+            updateMetrics({
+                time: [20],
+                score: [50]
+            });
+        }, 100);
+        
+        setTimeout(() => {
+            updateMetrics({
+                combo: [5],
+                score: [100]  // This should trigger the high score achievement
+            });
+        }, 200);
     };
 
     return (
@@ -33,15 +47,23 @@ const TestComponent = () => {
             <h2>Test Multiple Achievement Race Conditions</h2>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <button onClick={triggerMultipleAchievements}>
-                    Trigger Multiple Achievements
+                    Trigger Multiple Achievements (Simultaneous)
                 </button>
                 <button onClick={triggerRapidAchievements}>
-                    Trigger Rapid Achievements
+                    Trigger Rapid Achievements (Sequential)
                 </button>
             </div>
             <div>
                 <h3>Current Metrics:</h3>
                 <pre>{JSON.stringify(metrics, null, 2)}</pre>
+            </div>
+            <div style={{ marginTop: '20px' }}>
+                <h3>Test Instructions:</h3>
+                <ol>
+                    <li>Click "Trigger Multiple Achievements" to see all achievements trigger at once</li>
+                    <li>Click "Trigger Rapid Achievements" to see score increase over time until reaching 100</li>
+                    <li>Observe how achievements trigger as their conditions are met</li>
+                </ol>
             </div>
         </div>
     );

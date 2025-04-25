@@ -1,17 +1,25 @@
-import { AchievementProvider, useAchievementContext as useAchievement } from './providers/AchievementProvider';
-import { AchievementMetrics, AchievementConfiguration, AchievementDetails, AchievementUnlockCondition } from './types';
+import { AchievementProvider, useAchievementContext } from './providers/AchievementProvider';
+import type { 
+    AchievementMetrics,
+    AchievementConfiguration,
+    AchievementDetails,
+    AchievementUnlockCondition,
+} from './types';
 import ConfettiWrapper from './components/ConfettiWrapper';
 import { useAchievementState } from './hooks/useAchievementState';
 import { useAchievementStore } from './store/useAchievementStore';
 
 export {
     AchievementProvider,
-    useAchievement,
+    useAchievementContext as useAchievement,
+    ConfettiWrapper,
+    useAchievementState,
+    useAchievementStore,
+};
+
+export type {
     AchievementMetrics,
     AchievementConfiguration,
     AchievementDetails,
     AchievementUnlockCondition,
-    ConfettiWrapper,
-    useAchievementState,
-    useAchievementStore,
 };
