@@ -8,7 +8,7 @@ export default {
     input: 'src/index.ts',
     output: [
         {
-            file: 'dist/index.cjs.js',
+            file: 'dist/cjs.js',
             format: 'cjs',
         },
         {
@@ -25,5 +25,5 @@ export default {
         commonjs(),
         typescript({ tsconfig: './tsconfig.json' })
     ],
-    external: ['react', 'react-dom']
+    external: ['react', 'react-dom', 'zustand', 'react-confetti', 'react-use']
 };
