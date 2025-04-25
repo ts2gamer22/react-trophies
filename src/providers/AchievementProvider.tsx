@@ -192,11 +192,7 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     // Handle notifications
     useEffect(() => {
         if (notifications.length > 0) {
-            // Keep track of which notifications we're displaying
-            const displayingNotifications = [...notifications];
-            
-            // Show all notifications at once
-            displayingNotifications.forEach(achievement => {
+            notifications.forEach(achievement => {
                 const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
                 const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons ? 
                     mergedIcons[achievement.achievementIconKey] : 
@@ -222,10 +218,8 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                 );
             });
 
-            // Clear only the notifications we just displayed
-            clearNotifications(displayingNotifications);
+            clearNotifications();
             
-            // Show confetti for the achievements
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 3000);
         }
