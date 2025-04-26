@@ -1,6 +1,6 @@
 {
   "name": "react-achievements-zustand",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "This package allows users to transpose a React achievements engine over their React apps using Zustand for state management",
   "repository": {
     "type": "git",
