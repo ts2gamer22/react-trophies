@@ -2,7 +2,7 @@
 
 A flexible achievement system for React applications using Zustand for state management.
 
-![React Achievements Demo](https://github.com/dave-b-b/react-achievements/blob/main/images/demo.gif?raw=true)
+![React Achievements Demo](https://media.giphy.com/media/5sXoITml136LmyBPEc/giphy.gif)
 
 Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
 
