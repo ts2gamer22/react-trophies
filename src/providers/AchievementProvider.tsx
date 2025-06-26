@@ -16,11 +16,14 @@ import BadgesModal from '../components/BadgesModal';
 import ConfettiWrapper from '../components/ConfettiWrapper';
 import { defaultStyles } from '../defaultStyles';
 import { defaultAchievementIcons } from '../assets/defaultIcons';
+import soundManager from '../components/SoundManager';
 
 export interface AchievementContextType {
     updateMetrics: (newMetrics: AchievementMetrics | ((prevMetrics: AchievementMetrics) => AchievementMetrics)) => void;
     unlockedAchievements: string[];
     resetStorage: () => void;
+    notifications: AchievementDetails[];
+    clearNotifications: () => void;
 }
 
 export const AchievementContext = React.createContext<AchievementContextType | undefined>(undefined);
@@ -33,8 +36,6 @@ export const useAchievementContext = () => {
     return context;
 };
 
-import { Howl } from 'howler';
-
 const AchievementProvider: React.FC<AchievementProviderProps> = ({
     children,
     config,
@@ -43,7 +44,6 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     badgesButtonPosition = 'top-right',
     styles = {},
     icons = {},
-    soundUrl,
 }) => {
     const { 
         metrics, 
@@ -194,36 +194,12 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     // Handle notifications
     useEffect(() => {
         if (notifications.length > 0) {
-            if (soundUrl) {
-                const sound = new Howl({
-                    src: [soundUrl]
-                });
-                sound.play();
-            }
-
-            notifications.forEach(achievement => {
-                const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
-                const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons ? 
-                    mergedIcons[achievement.achievementIconKey] : 
-                    mergedIcons.default;
-
-                toast(
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ fontSize: '2em', marginRight: '10px' }}>{iconToDisplay}</span>
-                        <div>
-                            <div style={{ fontWeight: 'bold' }}>{achievement.achievementTitle}</div>
-                            <div>{achievement.achievementDescription}</div>
-                        </div>
-                    </div>
-                );
-            });
-
-            clearNotifications();
+            soundManager.playUnlockSound();
             
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 3000);
         }
-    }, [notifications, icons, clearNotifications]);
+    }, [notifications]);
 
     const showBadgesModal = () => setShowBadges(true);
 
@@ -251,6 +227,8 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                     localStorage.removeItem(storageKey);
                     resetAchievements();
                 },
+                notifications: notifications,
+                clearNotifications: clearNotifications,
             }}
         >
             {children}

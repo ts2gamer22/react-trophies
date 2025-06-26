@@ -1,19 +1,50 @@
-# 🏆 React-Achievements-Zustand
+# 🏆 React-Trophies
 
-A flexible achievement system for React applications using Zustand for state management.
+A comprehensive achievement and trophy system for React applications with sound effects, notifications, theming, and visual components.
 
-![React Achievements Demo](https://media.giphy.com/media/5sXoITml136LmyBPEc/giphy.gif)
+![React Trophies Demo](https://media.giphy.com/media/5sXoITml136LmyBPEc/giphy.gif)
 
-Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
+Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx) | [Next.js Demo](https://react-trophies-nextjs-demo.vercel.app/)
+
+## Features
+
+- 🏆 **Achievement System**: Configurable achievements with custom unlock conditions
+- 🔔 **Notifications**: Toast notifications with sound effects
+- 🎯 **Progress Tracking**: Track and display user progress toward unlocking achievements
+- 🎮 **Gaming Elements**: Trophy cards, showcases, badges buttons, and leaderboards
+- 🎨 **Themeable**: Customize the look and feel to match your application
+- 🔄 **Persistence**: Save and load achievement progress
+- 📱 **Responsive**: Works on all screen sizes
+- 🔧 **Framework Agnostic**: Works with any React-based framework
+
+
+## Package Structure
+
+The `react-trophies` package is organized into the following directories:
+
+```
+react-trophies/
+├── trophy-components/    # Core visual components (TrophyCard, TrophyShowcase, etc.)
+├── trophy-providers/     # Context providers and hooks for state management
+├── trophy-guidelines/    # Documentation and integration guides
+├── examples/             # Example implementations for different frameworks
+│   ├── nextjs/          # Next.js example setup
+│   ├── vite/            # Vite.js example setup
+│   └── basic/           # Framework-agnostic examples
+└── src/                 # Source code (build from this)
+    ├── components/      # Raw component implementations
+    ├── providers/       # Provider implementations
+    └── utils/           # Helper utilities
+```
 
 ## Quick Start
 
 ```bash
-npm install react react-dom zustand react-achievements-zustand
+npm install react-trophies
 ```
 
 ```jsx
-import { AchievementProvider, useAchievement } from 'react-achievements-zustand';
+import { AchievementProvider, useAchievement, TrophyNotificationToast } from 'react-trophies';
 
 // 1. Define achievements
 const achievementConfig = {
@@ -28,10 +59,11 @@ const achievementConfig = {
   }]
 };
 
-// 2. Use the provider
+// 2. Use the provider and notification component
 function App() {
   return (
     <AchievementProvider config={achievementConfig}>
+      <TrophyNotificationToast position="bottom-right" playSound={true} />
       <Game />
     </AchievementProvider>
   );
@@ -72,10 +104,216 @@ updateMetrics({ score: [50] });
 setTimeout(() => updateMetrics({ score: [100] }), 1000);
 ```
 
-### Achievement Notifications
-- Powered by [Sonner](https://sonner.emilkowal.ski/)
-- Shows multiple achievements simultaneously
-- Customizable appearance
+## Component Library
+
+React-Trophies comes with a comprehensive set of components to help you build a rich achievement system in your React application.
+
+### TrophyNotificationToast
+
+Displays toast notifications when achievements are unlocked with customizable appearance and sound effects.
+
+```jsx
+// In your app component
+import { TrophyNotificationToast } from 'react-trophies';
+
+function App() {
+  return (
+    <>
+      {/* Configuration options */}
+      <TrophyNotificationToast 
+        position="bottom-right" 
+        playSound={true}
+        duration={4000}
+        soundVolume={0.8}
+        customSoundUrl="/sounds/achievement.mp3"
+        toastTitle="Achievement Unlocked!"
+      />
+      
+      {/* Rest of your app */}
+    </>
+  );
+}
+```
+
+### AchievementToast
+
+A simpler version of TrophyNotificationToast that automatically shows toast notifications when achievements are unlocked.
+
+```jsx
+<AchievementToast 
+  position="top-center"
+  expandOnHover={true}
+/>
+```
+
+### TrophyCard
+
+A visually appealing card component to display individual achievements.
+
+```jsx
+import { TrophyCard } from 'react-trophies';
+
+function AchievementDetails({ achievement }) {
+  return (
+    <TrophyCard 
+      achievement={achievement}
+      showDescription={true}
+      showDate={true}
+      onClick={(achievement) => console.log('Clicked:', achievement.achievementId)}
+    />
+  );
+}
+```
+
+### TrophyGrid
+
+Display multiple achievements in a responsive grid layout.
+
+```jsx
+import { TrophyGrid } from 'react-trophies';
+
+function AchievementsPage({ achievements }) {
+  return (
+    <TrophyGrid
+      achievements={achievements}
+      columns="auto-fill"
+      minColumnWidth={250}
+      showDescriptions={true}
+      showDates={true}
+      onTrophyClick={(achievement) => setSelectedAchievement(achievement)}
+      filter={(achievement) => achievement.isUnlocked}
+    />
+  );
+}
+```
+
+### AchievementProgress
+
+Shows progress towards completing specific achievements.
+
+```jsx
+import { AchievementProgress } from 'react-trophies';
+
+function ProgressTracker({ achievement, currentValue }) {
+  return (
+    <AchievementProgress
+      achievement={achievement}
+      currentValue={currentValue}
+      targetValue={100}
+      showPercentage={true}
+      showFraction={true}
+      barColor="#4CAF50"
+      animate={true}
+      onComplete={(achievement) => console.log('Achievement complete!')}
+    />
+  );
+}
+```
+
+### TrophyShowcase
+
+A horizontal, scrollable display of achievements - perfect for profile pages or headers.
+
+```jsx
+import { TrophyShowcase } from 'react-trophies';
+
+function ProfileHeader({ achievements }) {
+  return (
+    <TrophyShowcase
+      achievements={achievements}
+      maxDisplay={5}
+      onlyShowUnlocked={true}
+      showLabels={true}
+      onTrophyClick={(achievement) => setSelectedAchievement(achievement)}
+    />
+  );
+}
+```
+
+### TrophyStats
+
+Display achievement statistics including counts and completion percentage.
+
+```jsx
+import { TrophyStats } from 'react-trophies';
+
+function AchievementStatistics({ achievements }) {
+  return (
+    <TrophyStats
+      achievements={achievements}
+      showTotal={true}
+      showUnlocked={true}
+      showPercentage={true}
+      showProgressBar={true}
+      title="Achievement Progress"
+    />
+  );
+}
+```
+
+### ThemeProvider
+
+Provides theming context for trophy components.
+
+```jsx
+import { ThemeProvider, useTheme } from 'react-trophies';
+
+function App() {
+  return (
+    <ThemeProvider 
+      initialTheme="dark" 
+      persistTheme={true}
+      customThemes={[
+        {
+          name: 'neon',
+          colors: {
+            primary: '#00ff8c',
+            secondary: '#ff00ff',
+            background: '#121212'
+            // ...other color values
+          }
+        }
+      ]}
+    >
+      <YourApp />
+    </ThemeProvider>
+  );
+}
+
+// Inside components:
+function ThemedComponent() {
+  const { colors, setTheme } = useTheme();
+  
+  return (
+    <div style={{ backgroundColor: colors.background, color: colors.text }}>
+      <button onClick={() => setTheme('dark')}>Dark Mode</button>
+      <button onClick={() => setTheme('light')}>Light Mode</button>
+      <button onClick={() => setTheme('neon')}>Neon Theme</button>
+    </div>
+  );
+}
+```
+
+### SoundManager
+
+Utility for managing achievement-related sound effects.
+
+```jsx
+import { soundManager } from 'react-trophies';
+
+// Register custom sounds
+soundManager.registerSound('levelUp', '/sounds/level-up.mp3');
+soundManager.registerSound('quest', '/sounds/quest-complete.mp3', { volume: 0.7 });
+
+// Play sounds
+soundManager.play('levelUp');
+
+// Control volume
+soundManager.setVolume(0.5);
+
+// Disable/enable sounds
+soundManager.setEnabled(false);
+```
 
 ### Sound Effects
 - Powered by [Howler.js](https://howlerjs.com/)

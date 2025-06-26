@@ -1,0 +1,172 @@
+import React, { useState } from 'react';
+// Import components directly from the package
+import { 
+  AchievementProvider, 
+  AchievementToast, 
+  TrophyShowcase,
+  TrophyStats,
+  useAchievement,
+  AchievementConfiguration,
+  AchievementDetails
+} from 'react-trophies';
+
+/**
+ * Example demonstrating how to set up and use the AchievementProvider
+ * 
+ * This component shows:
+ * 1. How to configure the achievement system
+ * 2. How to use achievement components inside the provider
+ * 3. How to trigger achievements using the useAchievement hook
+ */
+const ExampleAppWithAchievements: React.FC = () => {
+  // Define achievement configuration
+  const achievementConfig: AchievementConfiguration = {
+    // Score-based achievements
+    score: [{
+      isConditionMet: (value: number) => value >= 50,
+      achievementDetails: {
+        achievementId: 'score-50',
+        achievementTitle: 'Half Century',
+        achievementDescription: 'Reach a score of 50 points',
+        achievementIconKey: 'bronze'
+      }
+    }, {
+      isConditionMet: (value: number) => value >= 100,
+      achievementDetails: {
+        achievementId: 'score-100',
+        achievementTitle: 'Century Maker',
+        achievementDescription: 'Reach a score of 100 points',
+        achievementIconKey: 'silver'
+      }
+    }],
+    
+    // Visit-based achievements
+    visits: [{
+      isConditionMet: (value: number) => value >= 3,
+      achievementDetails: {
+        achievementId: 'regular-visitor',
+        achievementTitle: 'Regular Visitor',
+        achievementDescription: 'Visit the site 3 times',
+        achievementIconKey: 'activeDay'
+      }
+    }]
+  };
+
+  return (
+    <div style={{ fontFamily: 'sans-serif' }}>
+      {/* Wrap your app in the AchievementProvider */}
+      <AchievementProvider 
+        config={achievementConfig} 
+        storageKey="example-achievements"
+      >
+        {/* Add the AchievementToast to show notifications */}
+        <AchievementToast 
+          position="bottom-right" 
+          playSound={true}
+          expandOnHover={true}
+        />
+        
+        {/* Your app content */}
+        <h1>Achievement System Example</h1>
+        
+        {/* Example game component that can trigger achievements */}
+        <GameComponent />
+        
+        {/* Display unlocked achievements */}
+        <h2>Your Achievements</h2>
+        <TrophyShowcase maxDisplay={3} showLabels={true} />
+        
+        {/* Show achievement statistics */}
+        <h2>Achievement Progress</h2>
+        <TrophyStats showTotal={true} showUnlocked={true} showPercentage={true} />
+      </AchievementProvider>
+    </div>
+  );
+};
+
+/**
+ * Example game component that uses the useAchievement hook
+ * to trigger achievements based on user actions
+ */
+const GameComponent: React.FC = () => {
+  const [score, setScore] = useState<number>(0);
+  const [visits, setVisits] = useState<number>(0);
+  // Get the updateMetrics function from the achievement context
+  const { updateMetrics } = useAchievement();
+  
+  const handleScorePoints = (points: number): void => {
+    const newScore = score + points;
+    setScore(newScore);
+    
+    // Update the achievement system with the new score
+    // This will automatically check if any achievements should be unlocked
+    updateMetrics({ score: [newScore] });
+  };
+  
+  const handleVisit = (): void => {
+    const newVisits = visits + 1;
+    setVisits(newVisits);
+    
+    // Update visits metric to potentially unlock achievements
+    updateMetrics({ visits: [newVisits] });
+  };
+  
+  return (
+    <div style={{ 
+      padding: '20px', 
+      marginBottom: '20px',
+      border: '1px solid #ddd',
+      borderRadius: '8px'
+    }}>
+      <h3>Game Area</h3>
+      <p>Current Score: {score}</p>
+      <p>Visits: {visits}</p>
+      
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button 
+          onClick={() => handleScorePoints(10)}
+          style={{
+            padding: '10px 15px',
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Score +10 Points
+        </button>
+        
+        <button 
+          onClick={() => handleScorePoints(50)}
+          style={{
+            padding: '10px 15px',
+            backgroundColor: '#2196f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Score +50 Points
+        </button>
+        
+        <button 
+          onClick={handleVisit}
+          style={{
+            padding: '10px 15px',
+            backgroundColor: '#ff9800',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Log Visit
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ExampleAppWithAchievements;
