@@ -177,6 +177,7 @@ const Template: StoryFn = () => {
         <AchievementProvider 
             config={config} 
             storageKey="toast-test"
+            soundUrl="/trophy.mp3"
         >
             <TestComponent />
         </AchievementProvider>

@@ -1,6 +1,5 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster, toast } from 'sonner';
 import {
     AchievementDetails,
     AchievementMetricValue,
@@ -34,6 +33,8 @@ export const useAchievementContext = () => {
     return context;
 };
 
+import { Howl } from 'howler';
+
 const AchievementProvider: React.FC<AchievementProviderProps> = ({
     children,
     config,
@@ -42,6 +43,7 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     badgesButtonPosition = 'top-right',
     styles = {},
     icons = {},
+    soundUrl,
 }) => {
     const { 
         metrics, 
@@ -192,6 +194,13 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     // Handle notifications
     useEffect(() => {
         if (notifications.length > 0) {
+            if (soundUrl) {
+                const sound = new Howl({
+                    src: [soundUrl]
+                });
+                sound.play();
+            }
+
             notifications.forEach(achievement => {
                 const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
                 const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons ? 
@@ -205,16 +214,7 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                             <div style={{ fontWeight: 'bold' }}>{achievement.achievementTitle}</div>
                             <div>{achievement.achievementDescription}</div>
                         </div>
-                    </div>,
-                    {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined
-                    }
+                    </div>
                 );
             });
 
@@ -254,7 +254,7 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
             }}
         >
             {children}
-            <ToastContainer />
+            <Toaster />
             <ConfettiWrapper show={showConfetti} />
             <BadgesButton
                 onClick={showBadgesModal}

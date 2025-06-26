@@ -26,6 +26,7 @@ export interface AchievementProviderProps {
     badgesButtonPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     styles?: Partial<Styles>;
     icons?: Record<string, string>;
+    soundUrl?: string;
 }
 
 export interface AchievementUnlockCondition<T extends AchievementMetricValue> {

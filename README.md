@@ -73,17 +73,21 @@ setTimeout(() => updateMetrics({ score: [100] }), 1000);
 ```
 
 ### Achievement Notifications
-- Powered by react-toastify
+- Powered by [Sonner](https://sonner.emilkowal.ski/)
 - Shows multiple achievements simultaneously
 - Customizable appearance
 
-```css
-/* Custom notification styling */
-.Toastify__toast {
-  background-color: #2c3e50;
-  color: #ecf0f1;
-  border-radius: 10px;
-}
+### Sound Effects
+- Powered by [Howler.js](https://howlerjs.com/)
+- Play a sound when an achievement is unlocked
+
+```jsx
+<AchievementProvider
+  config={achievementConfig}
+  soundUrl="/path/to/your/sound.mp3"
+>
+  <App />
+</AchievementProvider>
 ```
 
 ### State Management
