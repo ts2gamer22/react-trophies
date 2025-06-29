@@ -1,0 +1,77 @@
+{
+  "name": "react-trophies",
+  "version": "1.4.3",
+  "description": "Comprehensive achievement and trophy system for React apps with sound effects, notifications, theming, and visual components.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ts2gamer22/react-trophies"
+  },
+  "keywords": [
+    "react",
+    "badge",
+    "achievement",
+    "trophy",
+    "sonner",
+    "howler",
+    "zustand"
+  ],
+  "main": "dist/cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c",
+    "deploy": "npm run build && npm publish",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "author": "ts2gamer22",
+  "license": "MIT",
+  "devDependencies": {
+    "@chromatic-com/storybook": "^1.6.1",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^6.0.2",
+    "@storybook/addon-essentials": "^8.6.8",
+    "@storybook/addon-interactions": "^8.6.8",
+    "@storybook/addon-links": "^8.6.8",
+    "@storybook/addon-onboarding": "^8.6.8",
+    "@storybook/addon-webpack5-compiler-swc": "^1.0.5",
+    "@storybook/blocks": "^8.6.8",
+    "@storybook/react": "^8.6.8",
+    "@storybook/react-webpack5": "^8.6.8",
+    "@storybook/test": "^8.6.8",
+    "@types/howler": "^2.2.12",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "rollup": "^4.19.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "storybook": "^8.6.8",
+    "typescript": "^5.5.4"
+  },
+  "peerDependencies": {
+    "howler": "^2.2.4",
+    "react": "^18.0.0 || ^19.0.0-rc.0",
+    "react-confetti": "^6.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0-rc.0",
+    "react-use": "^17.0.0",
+    "sonner": "^1.4.41",
+    "zustand": "^4.0.0 || ^5.0.0"
+  },
+  "dependencies": {}
+}
