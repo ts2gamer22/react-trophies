@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import { Toaster, toast } from 'sonner';
+import { Howl } from 'howler';
 import {
     AchievementDetails,
     AchievementMetricValue,
@@ -16,14 +17,11 @@ import BadgesModal from '../components/BadgesModal';
 import ConfettiWrapper from '../components/ConfettiWrapper';
 import { defaultStyles } from '../defaultStyles';
 import { defaultAchievementIcons } from '../assets/defaultIcons';
-import soundManager from '../components/SoundManager';
 
 export interface AchievementContextType {
     updateMetrics: (newMetrics: AchievementMetrics | ((prevMetrics: AchievementMetrics) => AchievementMetrics)) => void;
     unlockedAchievements: string[];
     resetStorage: () => void;
-    notifications: AchievementDetails[];
-    clearNotifications: () => void;
 }
 
 export const AchievementContext = React.createContext<AchievementContextType | undefined>(undefined);
@@ -44,6 +42,7 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     badgesButtonPosition = 'top-right',
     styles = {},
     icons = {},
+    achievementSoundUrl,
 }) => {
     const { 
         metrics, 
@@ -194,12 +193,42 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     // Handle notifications
     useEffect(() => {
         if (notifications.length > 0) {
-            soundManager.playUnlockSound();
+            if (achievementSoundUrl) {
+                try {
+                    console.log("Achievement unlocked - Playing sound:", achievementSoundUrl);
+                    const sound = new Howl({
+                        src: [achievementSoundUrl],
+                        volume: 0.8,
+                        preload: true,
+                        onload: () => console.log("Sound loaded successfully"),
+                        onloaderror: (soundId: number, error: Error) => console.error("Error loading sound:", error)
+                        // Note: onplayerror isn't in the TypeScript definitions but exists in newer Howler versions
+                    });
+                    sound.play();
+                } catch (error) {
+                    console.error("react-trophies: Failed to play achievement sound.", error);
+                }
+            }
+
+            notifications.forEach(achievement => {
+                const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
+                const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons 
+                    ? mergedIcons[achievement.achievementIconKey] 
+                    : mergedIcons.default;
+                
+                toast(achievement.achievementTitle, {
+                    description: achievement.achievementDescription,
+                    icon: <span style={{ fontSize: '2em', marginRight: '10px' }}>{iconToDisplay}</span>,
+                    duration: 4000,
+                });
+            });
+
+            clearNotifications();
             
             setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 3000);
+            setTimeout(() => setShowConfetti(false), 4000);
         }
-    }, [notifications]);
+    }, [notifications, icons, clearNotifications, achievementSoundUrl]);
 
     const showBadgesModal = () => setShowBadges(true);
 
@@ -227,12 +256,11 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                     localStorage.removeItem(storageKey);
                     resetAchievements();
                 },
-                notifications: notifications,
-                clearNotifications: clearNotifications,
             }}
         >
             {children}
-            <Toaster />
+            {/* @ts-ignore - Work around Sonner's type conflicts with React */}
+            <Toaster richColors position="top-right" />
             <ConfettiWrapper show={showConfetti} />
             <BadgesButton
                 onClick={showBadgesModal}

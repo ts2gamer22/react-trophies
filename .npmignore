@@ -1,22 +1,3 @@
-# Development directories
-/node_modules
-/stories
-/.storybook
-/storybook-static
-
-# Build artifacts not meant for direct use
-/coverage
-
-# Log files and local configs
-*.log
-.idea*
-.DS_Store
-
-# IMPORTANT: Re-include example and template files
-# The ! prefix negates the ignore pattern
-!examples/**
-!examples/**/*.tsx
-!examples/**/*.ts
-!templates/**
-!templates/**/*.tsx
-!templates/**/*.ts
+stories/
+.storybook/
+storybook-static/

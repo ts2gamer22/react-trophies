@@ -1,55 +1,48 @@
-# 🏆 React-Trophies
+# 🏆 React Trophies
 
 A comprehensive achievement and trophy system for React applications with sound effects, notifications, theming, and visual components.
 
 ![React Trophies Demo](https://media.giphy.com/media/5sXoITml136LmyBPEc/giphy.gif)
 
-Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx) | [Next.js Demo](https://react-trophies-nextjs-demo.vercel.app/)
+Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
 
 ## Features
 
-- 🏆 **Achievement System**: Configurable achievements with custom unlock conditions
-- 🔔 **Notifications**: Toast notifications with sound effects
-- 🎯 **Progress Tracking**: Track and display user progress toward unlocking achievements
-- 🎮 **Gaming Elements**: Trophy cards, showcases, badges buttons, and leaderboards
-- 🎨 **Themeable**: Customize the look and feel to match your application
-- 🔄 **Persistence**: Save and load achievement progress
-- 📱 **Responsive**: Works on all screen sizes
-- 🔧 **Framework Agnostic**: Works with any React-based framework
+- 🔔 **Toast Notifications** using Sonner
+- 🔊 **Sound Effects** using Howler.js
+- 🎊 **Confetti Celebrations** using react-confetti
+- 🏆 **Achievement Badges** with customizable icons
+- 💾 **Persistent Storage** for unlocked achievements
+- 🎯 **Flexible Metrics** for tracking user progress
+- 🎨 **Customizable Theming** for all components
+- 📱 **Responsive Design** for all screen sizes
 
+## Installation
 
-## Package Structure
+```bash
+# Install the package
+npm install react-trophies
 
-The `react-trophies` package is organized into the following directories:
-
+# Install peer dependencies
+npm install howler sonner zustand react-confetti react-use
 ```
-react-trophies/
-├── trophy-components/    # Core visual components (TrophyCard, TrophyShowcase, etc.)
-├── trophy-providers/     # Context providers and hooks for state management
-├── trophy-guidelines/    # Documentation and integration guides
-├── examples/             # Example implementations for different frameworks
-│   ├── nextjs/          # Next.js example setup
-│   ├── vite/            # Vite.js example setup
-│   └── basic/           # Framework-agnostic examples
-└── src/                 # Source code (build from this)
-    ├── components/      # Raw component implementations
-    ├── providers/       # Provider implementations
-    └── utils/           # Helper utilities
+
+Or with a single command:
+
+```bash
+npm install react-trophies howler sonner zustand react-confetti react-use
 ```
 
 ## Quick Start
 
-```bash
-npm install react-trophies
-```
-
 ```jsx
-import { AchievementProvider, useAchievement, TrophyNotificationToast } from 'react-trophies';
+import { AchievementProvider, useAchievement } from 'react-trophies';
+import type { AchievementConfiguration } from 'react-trophies';
 
 // 1. Define achievements
 const achievementConfig = {
   score: [{
-    isConditionMet: (value) => value >= 100,
+    isConditionMet: (value) => typeof value === 'number' && value >= 100,
     achievementDetails: {
       achievementId: 'high-score',
       achievementTitle: 'High Score!',
@@ -59,437 +52,170 @@ const achievementConfig = {
   }]
 };
 
-// 2. Use the provider and notification component
+// 2. Wrap your app with the provider
 function App() {
   return (
-    <AchievementProvider config={achievementConfig}>
-      <TrophyNotificationToast position="bottom-right" playSound={true} />
-      <Game />
+    <AchievementProvider 
+      config={achievementConfig}
+      storageKey="my-app-achievements" // Optional: for persistence
+      achievementSoundUrl="/achievement-sound.mp3" // Optional: sound effect
+      badgesButtonPosition="top-right" // Optional: position of the badges button
+    >
+      <YourApp />
     </AchievementProvider>
   );
 }
 
-// 3. Update metrics
-function Game() {
+// 3. Use the hook to update metrics
+function GameComponent() {
+  const { updateMetrics, unlockedAchievements, notifications } = useAchievement();
+  
+  const handleScoreChange = (newScore) => {
+    // IMPORTANT: All metrics must be arrays
+    updateMetrics({ score: [newScore] });
+  };
+  
+  // Rest of your component
+}
+
+// 4. Add a sound file to your public directory
+// Create a file at: public/achievement-sound.mp3
+```
+
+## API Reference
+
+### AchievementProvider Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `config` | `AchievementConfiguration` | Required. Configuration object defining all achievements |
+| `initialState` | `object` | Optional. Initial metrics and previously awarded achievements |
+| `storageKey` | `string` | Optional. Key for localStorage persistence |
+| `badgesButtonPosition` | `'top-left'\|'top-right'\|'bottom-left'\|'bottom-right'` | Optional. Position of the badges button |
+| `styles` | `object` | Optional. Custom styles for components |
+| `icons` | `Record<string, string>` | Optional. Custom icons for achievements |
+| `achievementSoundUrl` | `string` | Optional. URL to sound effect MP3 file |
+
+### useAchievement Hook
+
+The `useAchievement` hook returns:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `metrics` | `Record<string, any[]>` | Current metrics values |
+| `unlockedAchievements` | `AchievementDetails[]` | List of unlocked achievements |
+| `notifications` | `AchievementDetails[]` | Recent achievement notifications |
+| `updateMetrics` | `(metrics: Record<string, any[]>) => void` | Function to update metrics |
+| `resetStorage` | `() => void` | Function to reset all stored achievements |
+
+## TypeScript Support
+
+All types are exported from the package:
+
+```typescript
+import type { 
+  AchievementConfiguration,
+  AchievementDetails,
+  AchievementMetricValue 
+} from 'react-trophies';
+```
+
+## Peer Dependencies
+
+This package relies on the following peer dependencies:
+
+- `howler` (^2.2.4): For sound effects
+- `sonner` (^1.4.41): For toast notifications
+- `zustand` (^4.0.0 || ^5.0.0): For state management
+- `react-confetti` (^6.0.0): For celebration effects
+- `react-use` (^17.0.0): For utility hooks
+- `react` and `react-dom` (^18.0.0 || ^19.0.0-rc.0): React core
+
+## Complete Example
+
+Here's a complete example of a click counter game with achievements:
+
+```jsx
+import { useState } from 'react';
+import { AchievementProvider, useAchievement } from 'react-trophies';
+import type { AchievementConfiguration } from 'react-trophies';
+
+// Component that uses the achievement system
+function ClickGame() {
+  const [clicks, setClicks] = useState(0);
   const { updateMetrics } = useAchievement();
 
-  const handleScore = () => {
-    updateMetrics({
-      score: [100]  // Values are always passed in arrays
-    });
+  // Handle click and update the 'clicks' metric
+  const handleClick = () => {
+    const newClickCount = clicks + 1;
+    setClicks(newClickCount);
+    
+    // Update the achievement metric - must be an array for each metric
+    updateMetrics({ clicks: [newClickCount] });
   };
 
-  return <button onClick={handleScore}>Score Points</button>;
-}
-```
-
-## Core Features
-
-### Metric Updates
-```jsx
-const { updateMetrics } = useAchievement();
-
-// Single update
-updateMetrics({ score: [100] });
-
-// Multiple metrics
-updateMetrics({
-  score: [100],
-  combo: [5],
-  time: [60]
-});
-
-// Sequential updates
-updateMetrics({ score: [50] });
-setTimeout(() => updateMetrics({ score: [100] }), 1000);
-```
-
-## Component Library
-
-React-Trophies comes with a comprehensive set of components to help you build a rich achievement system in your React application.
-
-### TrophyNotificationToast
-
-Displays toast notifications when achievements are unlocked with customizable appearance and sound effects.
-
-```jsx
-// In your app component
-import { TrophyNotificationToast } from 'react-trophies';
-
-function App() {
   return (
-    <>
-      {/* Configuration options */}
-      <TrophyNotificationToast 
-        position="bottom-right" 
-        playSound={true}
-        duration={4000}
-        soundVolume={0.8}
-        customSoundUrl="/sounds/achievement.mp3"
-        toastTitle="Achievement Unlocked!"
-      />
-      
-      {/* Rest of your app */}
-    </>
-  );
-}
-```
-
-### AchievementToast
-
-A simpler version of TrophyNotificationToast that automatically shows toast notifications when achievements are unlocked.
-
-```jsx
-<AchievementToast 
-  position="top-center"
-  expandOnHover={true}
-/>
-```
-
-### TrophyCard
-
-A visually appealing card component to display individual achievements.
-
-```jsx
-import { TrophyCard } from 'react-trophies';
-
-function AchievementDetails({ achievement }) {
-  return (
-    <TrophyCard 
-      achievement={achievement}
-      showDescription={true}
-      showDate={true}
-      onClick={(achievement) => console.log('Clicked:', achievement.achievementId)}
-    />
-  );
-}
-```
-
-### TrophyGrid
-
-Display multiple achievements in a responsive grid layout.
-
-```jsx
-import { TrophyGrid } from 'react-trophies';
-
-function AchievementsPage({ achievements }) {
-  return (
-    <TrophyGrid
-      achievements={achievements}
-      columns="auto-fill"
-      minColumnWidth={250}
-      showDescriptions={true}
-      showDates={true}
-      onTrophyClick={(achievement) => setSelectedAchievement(achievement)}
-      filter={(achievement) => achievement.isUnlocked}
-    />
-  );
-}
-```
-
-### AchievementProgress
-
-Shows progress towards completing specific achievements.
-
-```jsx
-import { AchievementProgress } from 'react-trophies';
-
-function ProgressTracker({ achievement, currentValue }) {
-  return (
-    <AchievementProgress
-      achievement={achievement}
-      currentValue={currentValue}
-      targetValue={100}
-      showPercentage={true}
-      showFraction={true}
-      barColor="#4CAF50"
-      animate={true}
-      onComplete={(achievement) => console.log('Achievement complete!')}
-    />
-  );
-}
-```
-
-### TrophyShowcase
-
-A horizontal, scrollable display of achievements - perfect for profile pages or headers.
-
-```jsx
-import { TrophyShowcase } from 'react-trophies';
-
-function ProfileHeader({ achievements }) {
-  return (
-    <TrophyShowcase
-      achievements={achievements}
-      maxDisplay={5}
-      onlyShowUnlocked={true}
-      showLabels={true}
-      onTrophyClick={(achievement) => setSelectedAchievement(achievement)}
-    />
-  );
-}
-```
-
-### TrophyStats
-
-Display achievement statistics including counts and completion percentage.
-
-```jsx
-import { TrophyStats } from 'react-trophies';
-
-function AchievementStatistics({ achievements }) {
-  return (
-    <TrophyStats
-      achievements={achievements}
-      showTotal={true}
-      showUnlocked={true}
-      showPercentage={true}
-      showProgressBar={true}
-      title="Achievement Progress"
-    />
-  );
-}
-```
-
-### ThemeProvider
-
-Provides theming context for trophy components.
-
-```jsx
-import { ThemeProvider, useTheme } from 'react-trophies';
-
-function App() {
-  return (
-    <ThemeProvider 
-      initialTheme="dark" 
-      persistTheme={true}
-      customThemes={[
-        {
-          name: 'neon',
-          colors: {
-            primary: '#00ff8c',
-            secondary: '#ff00ff',
-            background: '#121212'
-            // ...other color values
-          }
-        }
-      ]}
-    >
-      <YourApp />
-    </ThemeProvider>
-  );
-}
-
-// Inside components:
-function ThemedComponent() {
-  const { colors, setTheme } = useTheme();
-  
-  return (
-    <div style={{ backgroundColor: colors.background, color: colors.text }}>
-      <button onClick={() => setTheme('dark')}>Dark Mode</button>
-      <button onClick={() => setTheme('light')}>Light Mode</button>
-      <button onClick={() => setTheme('neon')}>Neon Theme</button>
+    <div>
+      <p>Total Clicks: {clicks}</p>
+      <button onClick={handleClick}>Click Me!</button>
     </div>
   );
 }
-```
 
-### SoundManager
+function App() {
+  // Define achievement configuration
+  const achievementConfig: AchievementConfiguration = {
+    // The 'clicks' metric will trigger these achievements
+    clicks: [
+      {
+        // Achievement for first click
+        isConditionMet: (value) => typeof value === 'number' && value >= 1,
+        achievementDetails: {
+          achievementId: 'first-click',
+          achievementTitle: 'First Click!',
+          achievementDescription: 'You made your first click',
+          achievementIconKey: 'trophy'
+        }
+      },
+      {
+        // Achievement for 5 clicks
+        isConditionMet: (value) => typeof value === 'number' && value >= 5,
+        achievementDetails: {
+          achievementId: 'getting-started',
+          achievementTitle: 'Getting Started',
+          achievementDescription: 'Click 5 times',
+          achievementIconKey: 'star'
+        }
+      }
+    ]
+  };
 
-Utility for managing achievement-related sound effects.
-
-```jsx
-import { soundManager } from 'react-trophies';
-
-// Register custom sounds
-soundManager.registerSound('levelUp', '/sounds/level-up.mp3');
-soundManager.registerSound('quest', '/sounds/quest-complete.mp3', { volume: 0.7 });
-
-// Play sounds
-soundManager.play('levelUp');
-
-// Control volume
-soundManager.setVolume(0.5);
-
-// Disable/enable sounds
-soundManager.setEnabled(false);
-```
-
-### Sound Effects
-- Powered by [Howler.js](https://howlerjs.com/)
-- Play a sound when an achievement is unlocked
-
-```jsx
-<AchievementProvider
-  config={achievementConfig}
-  soundUrl="/path/to/your/sound.mp3"
->
-  <App />
-</AchievementProvider>
-```
-
-### State Management
-```jsx
-// Save progress
-const { metrics, previouslyAwardedAchievements } = useAchievementState();
-
-// Load progress
-<AchievementProvider
-  config={achievementConfig}
-  initialState={{
-    metrics: savedMetrics,
-    previouslyAwardedAchievements: savedAchievements
-  }}
-/>
-```
-
-### Reset Progress
-```jsx
-const { resetStorage } = useAchievement();
-resetStorage(); // Clears all progress
+  return (
+    <AchievementProvider 
+      config={achievementConfig}
+      storageKey="click-game-achievements"
+      badgesButtonPosition="top-right"
+      achievementSoundUrl="/achievement-sound.mp3"
+    >
+      <ClickGame />
+    </AchievementProvider>
+  );
+}
 ```
 
 ## Available Icons
 
-### Achievement Types
+The package includes these default icons that can be referenced by key:
+
 - 🏆 `trophy` - Classic achievement symbol
 - ⭐ `star` - General achievement
 - 🥉 `bronze` - Bronze tier achievement
 - 🥈 `silver` - Silver tier achievement
 - 🥇 `gold` - Gold tier achievement
 - 💎 `diamond` - Diamond tier achievement
-- ✨ `legendary` - Legendary achievement
-- 💥 `epic` - Epic achievement
-- 🔮 `rare` - Rare achievement
-- 🔘 `common` - Common achievement
-- 🎁 `special` - Special achievement
+- 🚀 `rocket` - Progress achievement
+- 🔥 `fire` - Streak achievement
 
-### Progress & Milestones
-- 📈 `growth` - Progress indicator
-- 🔥 `streak` - Streak achievements
-- 👑 `master` - Mastery achievements
-- 🚀 `pioneer` - Pioneer or early adopter
-- 💡 `breakthrough` - Discovery or breakthrough
-- 🌱 `newBeginnings` - First-time achievements
-- 👣 `firstStep` - First achievement
-- 🏅 `milestoneReached` - Milestone completion
-- 🏁 `challengeCompleted` - Challenge completion
+## License
 
-### Social & Engagement
-- 🔗 `shared` - Sharing achievement
-- ❤️ `liked` - Appreciation
-- 💬 `commented` - Communication
-- 👥 `followed` - Following achievement
-- 🤝 `invited` - Invitation achievement
-- 🏘️ `communityMember` - Community participation
-- 🌟 `supporter` - Support achievement
-- 🌐 `connected` - Connection achievement
-- 🙋 `participant` - Participation
-- 📣 `influencer` - Influence achievement
-
-### Time & Activity
-- ☀️ `activeDay` - Daily activity
-- 📅 `activeWeek` - Weekly activity
-- 🗓️ `activeMonth` - Monthly activity
-- ⏰ `earlyBird` - Early participation
-- 🌙 `nightOwl` - Late participation
-- ⏳ `dedicated` - Time dedication
-- ⏱️ `punctual` - Timeliness
-- 🔄 `consistent` - Consistency
-- 🏃 `marathon` - Long-term achievement
-
-### Creativity & Expertise
-- 🎨 `artist` - Artistic achievement
-- ✍️ `writer` - Writing achievement
-- 🔬 `innovator` - Innovation
-- 🛠️ `creator` - Creation achievement
-- 🎓 `expert` - Expertise achievement
-- 🎭 `performer` - Performance achievement
-- 🧠 `thinker` - Thinking achievement
-- 🗺️ `explorer` - Exploration achievement
-
-### Action & Interaction
-- 🖱️ `clicked` - Click interaction
-- 🔑 `used` - Usage achievement
-- 🔍 `found` - Discovery achievement
-- 🧱 `built` - Building achievement
-- 🧩 `solved` - Problem solving
-- 🔭 `discovered` - Discovery
-- 🔓 `unlocked` - Unlocking achievement
-- ⬆️ `upgraded` - Upgrade achievement
-- 🔧 `repaired` - Fix achievement
-- 🛡️ `defended` - Defense achievement
-
-### Numbers & Counters
-- 1️⃣ `one` - First achievement
-- 🔟 `ten` - Tenth achievement
-- 💯 `hundred` - Hundredth achievement
-- 🔢 `thousand` - Thousandth achievement
-
-### System Icons
-- ⭐ `default` - Default fallback icon
-- ⏳ `loading` - Loading state
-- ⚠️ `error` - Error state
-- ✅ `success` - Success state
-- ❌ `failure` - Failure state
-
-### Additional Decorative Icons
-- 🚩 `flag` - Flag marker
-- 💎 `gem` - Gem reward
-- 🎗️ `ribbon` - Ribbon award
-- 🎖️ `badge` - Badge award
-- ⚔️ `monsterDefeated` - Combat achievement
-- 📦 `itemCollected` - Collection achievement
-
-### Usage Example
-```jsx
-const achievementConfig = {
-  score: [{
-    isConditionMet: (value) => value >= 100,
-    achievementDetails: {
-      achievementId: 'high-score',
-      achievementTitle: 'High Score!',
-      achievementDescription: 'Score 100 points',
-      achievementIconKey: 'legendary' // Use any icon key from above
-    }
-  }]
-};
-```
-
-## Advanced Features
-
-### Custom Styling
-```jsx
-const styles = {
-  badgesButton: {
-    position: 'fixed',
-    top: '20px',
-    right: '20px',
-    // ...more styles
-  },
-  badgesModal: {
-    overlay: { backgroundColor: 'rgba(0,0,0,0.8)' },
-    // ...more styles
-  }
-};
-
-<AchievementProvider styles={styles}>
-  <App />
-</AchievementProvider>
-```
-
-### Persistence
-```jsx
-<AchievementProvider
-  config={achievementConfig}
-  storageKey="my-game-achievements" // localStorage key
-  initialState={loadedState}
-/>
-```
-
-## Complete Documentation
-- [Full Example](#full-example)
-- [API Reference](#api-reference)
-- [Icon List](#full-icon-list)
-- [Styling Guide](#styling-guide)
-- [Migration Guide](#migration-guide)
+MIT © 2025

@@ -1,6 +1,7 @@
 import React from 'react';
-import { StoryFn, Meta } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AchievementProvider } from '../../src';
+import { AchievementContext } from '../../src/providers/AchievementProvider';
 import {
     AchievementConfiguration,
     AchievementMetrics,
@@ -45,7 +46,7 @@ export default {
         controls: { expanded: true },
         docs: {
             description: {
-                component: 'This story tests the basic functionality of the AchievementProvider component.'
+                component: 'This story tests the basic functionality of the AchievementProvider component, including sound playback with Howler.js and notifications with Sonner.'
             }
         }
     },
@@ -60,6 +61,11 @@ export default {
             options: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
             description: 'Position of the badges button',
             defaultValue: 'top-right'
+        },
+        achievementSoundUrl: {
+            control: 'text',
+            description: 'URL to the achievement sound file',
+            defaultValue: '/achievement-sound.mp3'
         }
     }
 } as Meta;
@@ -68,32 +74,74 @@ export default {
 interface ProviderTestProps {
     storageKey?: string;
     badgesButtonPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    achievementSoundUrl?: string;
 }
 
-const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badgesButtonPosition?: "top-right" | undefined; }) => {
-    const { storageKey = 'test-achievements', badgesButtonPosition = 'top-right' } = args;
+const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badgesButtonPosition?: "top-right" | undefined; achievementSoundUrl?: string; }) => {
+    const { storageKey = 'test-achievements', badgesButtonPosition = 'top-right', achievementSoundUrl = '/achievement-sound.mp3' } = args;
 
     // State to track trigger count
     const [triggerCount, setTriggerCount] = React.useState(0);
-
+    
+    // Reference to the AchievementContext
+    const achievementContextRef = React.useRef<any>(null);
+    
+    // Function to capture context
+    const captureContext = (context: any) => {
+        achievementContextRef.current = context;
+    };
+    
+    // Direct trigger using context
     const triggerAchievement = () => {
-        const event = new CustomEvent('achievement-trigger', {
-            detail: {
-                metric: 'pageVisits',
-                value: 1
-            }
-        });
-        window.dispatchEvent(event);
-        setTriggerCount(prevCount => prevCount + 1);
+        if (achievementContextRef.current) {
+            // Use the context to update metrics directly
+            achievementContextRef.current.updateMetrics({
+                'pageVisits': [1]
+            });
+            setTriggerCount(prevCount => prevCount + 1);
+            console.log('Achievement triggered!');
+        } else {
+            console.error('Achievement context not available!');
+        }
+    };
+    
+    // Test sound directly
+    const testSound = () => {
+        try {
+            console.log('Testing sound playback:', achievementSoundUrl);
+            // Create and play sound directly using Howler
+            const { Howl } = require('howler');
+            const testSound = new Howl({
+                src: [achievementSoundUrl],
+                volume: 1.0,
+                preload: true,
+                onload: () => console.log('Test sound loaded successfully'),
+                onloaderror: (id: number, err: Error) => console.error('Error loading test sound:', err)
+            });
+            testSound.play();
+        } catch (error) {
+            console.error('Failed to play test sound:', error);
+        }
     };
 
+    // Create a wrapper component that captures the context
+    const ContextCapture = ({ children }: { children: React.ReactNode }) => {
+        const context = React.useContext(AchievementContext);
+        React.useEffect(() => {
+            captureContext(context);
+        }, [context]);
+        return <>{children}</>;
+    };
+    
     return (
         <AchievementProvider
             config={testAchievementConfig}
             initialState={initialAchievementState}
             storageKey={storageKey}
             badgesButtonPosition={badgesButtonPosition}
+            achievementSoundUrl={achievementSoundUrl}
         >
+            <ContextCapture>
             <div style={{
                 padding: '2rem',
                 border: '1px solid #eaeaea',
@@ -111,6 +159,7 @@ const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badg
                         <ul>
                             <li>Storage Key: {storageKey}</li>
                             <li>Badges Button Position: {badgesButtonPosition}</li>
+                            <li>Achievement Sound URL: {achievementSoundUrl}</li>
                             <li>Achievement triggers: {triggerCount}</li>
                         </ul>
                     </div>
@@ -133,7 +182,7 @@ const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badg
                         <pre>{JSON.stringify(initialAchievementState, null, 2)}</pre>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
                         <button
                             style={{
                                 padding: '0.75rem 1.5rem',
@@ -147,6 +196,21 @@ const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badg
                             onClick={triggerAchievement}
                         >
                             Trigger Achievement
+                        </button>
+
+                        <button
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                background: '#6F42C1',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                            onClick={testSound}
+                        >
+                            Test Sound Directly
                         </button>
 
                         <button
@@ -176,19 +240,32 @@ const ProviderTest = (args: { storageKey?: "test-achievements" | undefined; badg
                     }}>
                         <h3>Test Instructions:</h3>
                         <ol>
-                            <li>Click the "Trigger Achievement" button to simulate a page visit</li>
-                            <li>Observe the achievement notification that appears</li>
+                            <li>Click the <strong>"Trigger Achievement"</strong> button to simulate a page visit and trigger the achievement notification</li>
+                            <li>Observe the achievement notification that appears with Sonner toast</li>
+                            <li>You should hear a sound effect if your browser allows audio playback</li>
+                            <li>If no sound plays, try the <strong>"Test Sound Directly"</strong> button to test Howler.js separately</li>
                             <li>Click on the badges button to view unlocked achievements</li>
-                            <li>Use the "Reset Storage" button to clear stored achievements and start fresh</li>
+                            <li>Check browser console for any audio loading/playback messages</li>
+                            <li>Use the <strong>"Reset Storage"</strong> button to clear stored achievements and start fresh</li>
                         </ol>
+                        
+                        <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#FFF9DB', border: '1px solid #FFD43B', borderRadius: '4px' }}>
+                            <strong>Note:</strong> If sound doesn't play, check that:
+                            <ul>
+                                <li>Your browser's sound is enabled</li>
+                                <li>Autoplay is allowed for this site</li>
+                                <li>The sound file path ({achievementSoundUrl}) is accessible</li> 
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
+            </ContextCapture>
         </AchievementProvider>
     );
 };
 
-export const BasicProviderTest = (args: { storageKey?: "test-achievements" | undefined; badgesButtonPosition?: "top-right" | undefined; }) => (
+export const BasicProviderTest = (args: { storageKey?: "test-achievements" | undefined; badgesButtonPosition?: "top-right" | undefined; achievementSoundUrl?: string; }) => (
     <ProviderTest {...args} />
 );
 BasicProviderTest.storyName = 'Basic Provider Test';
