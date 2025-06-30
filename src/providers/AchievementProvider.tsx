@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, useMemo } from 'react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { Howl } from 'howler';
 import {
     AchievementDetails,
@@ -17,12 +17,11 @@ import BadgesModal from '../components/BadgesModal';
 import ConfettiWrapper from '../components/ConfettiWrapper';
 import { defaultStyles } from '../defaultStyles';
 import { defaultAchievementIcons } from '../assets/defaultIcons';
+import { AchievementToastContent } from '../components/AchievementToastContent';
 
-export interface AchievementContextType {
-    updateMetrics: (newMetrics: AchievementMetrics | ((prevMetrics: AchievementMetrics) => AchievementMetrics)) => void;
-    unlockedAchievements: string[];
-    resetStorage: () => void;
-}
+import {
+    AchievementContextType,
+} from '../types';
 
 export const AchievementContext = React.createContext<AchievementContextType | undefined>(undefined);
 
@@ -34,6 +33,25 @@ export const useAchievementContext = () => {
     return context;
 };
 
+/**
+ * Provider component that manages achievement state and notifications
+ * 
+ * @param props - The achievement provider props
+ * @param props.children - Child components that will have access to achievement context
+ * @param props.config - Configuration object defining all achievements
+ * @param props.initialState - Initial metrics and previously awarded achievements
+ * @param props.storageKey - Key for localStorage persistence
+ * @param props.badgesButtonPosition - Position of the badges button
+ * @param props.styles - Custom styles for components
+ * @param props.icons - Custom icons for achievements
+ * @param props.achievementSoundUrl - URL to sound effect MP3 file
+ * @param props.enableSound - Controls whether achievement sound effects play
+ * @param props.enableConfetti - Controls whether confetti celebration displays
+ * @param props.enableToasts - Controls whether toast notifications display
+ * @param props.toastTitle - Title text displayed at the top of achievement toast notifications
+ * @param props.toastStyles - Custom styles for achievement toast notifications
+ * @param props.useDefaultToastStyles - When true, uses Sonner's default toast styling instead of custom styling
+ */
 const AchievementProvider: React.FC<AchievementProviderProps> = ({
     children,
     config,
@@ -43,6 +61,12 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
     styles = {},
     icons = {},
     achievementSoundUrl,
+    enableSound = true,
+    enableConfetti = true,
+    enableToasts = true,
+    toastTitle = "Achievement Unlocked!",
+    toastStyles = {},
+    useDefaultToastStyles = false
 }) => {
     const { 
         metrics, 
@@ -190,45 +214,72 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
         }
     }, [metrics, checkAchievements, isInitialized]);
 
-    // Handle notifications
+    // No longer need to check for Toaster component as we're using a different approach
+
     useEffect(() => {
         if (notifications.length > 0) {
-            if (achievementSoundUrl) {
+            // Play sound if enabled
+            if (enableSound && achievementSoundUrl) {
                 try {
-                    console.log("Achievement unlocked - Playing sound:", achievementSoundUrl);
                     const sound = new Howl({
                         src: [achievementSoundUrl],
-                        volume: 0.8,
-                        preload: true,
-                        onload: () => console.log("Sound loaded successfully"),
-                        onloaderror: (soundId: number, error: Error) => console.error("Error loading sound:", error)
-                        // Note: onplayerror isn't in the TypeScript definitions but exists in newer Howler versions
+                        volume: 0.5,
+                        onload: () => {},
+                        onloaderror: (soundId: number, error: Error) => {
+                            console.error('Error loading achievement sound:', error);
+                        }
                     });
                     sound.play();
                 } catch (error) {
-                    console.error("react-trophies: Failed to play achievement sound.", error);
+                    console.error('Error playing achievement sound:', error);
                 }
             }
 
-            notifications.forEach(achievement => {
-                const mergedIcons: Record<string, string> = { ...defaultAchievementIcons, ...icons };
-                const iconToDisplay = achievement?.achievementIconKey && achievement.achievementIconKey in mergedIcons 
-                    ? mergedIcons[achievement.achievementIconKey] 
-                    : mergedIcons.default;
+            // Show toast notifications if enabled
+            if (enableToasts) {
+                // Create a merged icons object with defaults and custom icons
+                const mergedIcons = { ...defaultAchievementIcons, ...icons };
                 
-                toast(achievement.achievementTitle, {
-                    description: achievement.achievementDescription,
-                    icon: <span style={{ fontSize: '2em', marginRight: '10px' }}>{iconToDisplay}</span>,
-                    duration: 4000,
+                // Display each achievement notification
+                notifications.forEach(achievement => {
+                    if (useDefaultToastStyles) {
+                        // Use default Sonner toast styling
+                        toast(toastTitle, {
+                            description: achievement.achievementDescription,
+                            icon: achievement.achievementIconKey && achievement.achievementIconKey in mergedIcons
+                                ? mergedIcons[achievement.achievementIconKey as keyof typeof mergedIcons]
+                                : achievement.achievementIconKey && achievement.achievementIconKey in defaultAchievementIcons
+                                    ? defaultAchievementIcons[achievement.achievementIconKey as keyof typeof defaultAchievementIcons]
+                                    : defaultAchievementIcons.default,
+                            duration: 4000,
+                            id: `achievement-${achievement.achievementId}`,
+                        });
+                    } else {
+                        // Use custom AchievementToastContent component
+                        toast.custom((t) => (
+                            <AchievementToastContent 
+                                achievement={achievement}
+                                icons={mergedIcons}
+                                title={toastTitle}
+                                customStyles={toastStyles}
+                            />
+                        ), {
+                            duration: 4000,
+                            id: `achievement-${achievement.achievementId}`,
+                        });
+                    }
                 });
-            });
+            }
 
             clearNotifications();
             
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 4000);
+            // Show confetti if enabled
+            if (enableConfetti) {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 4000);
+            }
         }
-    }, [notifications, icons, clearNotifications, achievementSoundUrl]);
+    }, [notifications, icons, clearNotifications, achievementSoundUrl, enableSound, enableConfetti, enableToasts, toastTitle]);
 
     const showBadgesModal = () => setShowBadges(true);
 
@@ -256,12 +307,12 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                     localStorage.removeItem(storageKey);
                     resetAchievements();
                 },
+                notifications: notifications,
+                clearNotifications: clearNotifications,
             }}
         >
             {children}
-            {/* @ts-ignore - Work around Sonner's type conflicts with React */}
-            <Toaster richColors position="top-right" />
-            <ConfettiWrapper show={showConfetti} />
+            {enableConfetti && <ConfettiWrapper show={showConfetti} />}
             <BadgesButton
                 onClick={showBadgesModal}
                 position={badgesButtonPosition}

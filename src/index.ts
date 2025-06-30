@@ -8,6 +8,8 @@ import type {
 import ConfettiWrapper from './components/ConfettiWrapper';
 import { useAchievementState } from './hooks/useAchievementState';
 import { useAchievementStore } from './store/useAchievementStore';
+import { toast as TrophyToast, isToasterMounted } from './utils/TrophyToast';
+import { AchievementToastContent } from './components/AchievementToastContent';
 
 export {
     AchievementProvider,
@@ -15,6 +17,9 @@ export {
     ConfettiWrapper,
     useAchievementState,
     useAchievementStore,
+    TrophyToast,
+    isToasterMounted,
+    AchievementToastContent,
 };
 
 export type {

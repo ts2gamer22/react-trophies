@@ -23,10 +23,10 @@ Install the package using npm or yarn:
 
 ```bash
 # Using npm
-npm install react-trophies
+npm install react-trophies sonner howler zustand
 
 # Using yarn
-yarn add react-trophies
+yarn add react-trophies sonner howler zustand
 ```
 
 ## Core Components
@@ -36,7 +36,7 @@ The React-Trophies package provides several components to build a complete achie
 ### Required Components
 
 - **AchievementProvider**: The core provider component that manages achievement state
-- **TrophyNotificationToast** or **AchievementToast**: Components for displaying achievement notifications
+- **Toaster** (from sonner): The toast notification container that displays achievement unlocks (must be included in your application)
 
 ### Optional Components
 
@@ -56,7 +56,8 @@ The React-Trophies package provides several components to build a complete achie
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { AchievementProvider, TrophyNotificationToast } from 'react-trophies';
+import { AchievementProvider } from 'react-trophies';
+import { Toaster } from 'sonner';
 import App from './App';
 import './index.css';
 import { achievementConfig } from './lib/achievements/config';
@@ -64,9 +65,9 @@ import { achievementConfig } from './lib/achievements/config';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AchievementProvider config={achievementConfig}>
-      <TrophyNotificationToast position="bottom-right" playSound={true} />
+    <AchievementProvider config={achievementConfig} enableToasts={true}>
       <App />
+      <Toaster position="bottom-right" richColors />
     </AchievementProvider>
   </React.StrictMode>
 );
@@ -110,7 +111,8 @@ function GameComponent() {
 
 ```jsx
 import React from 'react';
-import { AchievementProvider, TrophyNotificationToast } from 'react-trophies';
+import { AchievementProvider } from 'react-trophies';
+import { Toaster } from 'sonner';
 import { achievementConfig } from '../lib/achievements/config';
 
 // Load saved achievements from localStorage (client-side only)
@@ -134,9 +136,10 @@ export function AchievementWrapper({ children }) {
       config={achievementConfig}
       storageKey="my-app-achievements"
       initialState={savedData}
+      enableToasts={true}
     >
-      <TrophyNotificationToast position="bottom-right" playSound={true} />
       {children}
+      <Toaster position="bottom-right" richColors />
     </AchievementProvider>
   );
 }
@@ -159,53 +162,14 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 ```
 
-3. For Next.js applications, ensure sound files are placed in the `public` folder:
-
-```
-public/
-├─ sounds/
-│  ├─ achievement.mp3
-│  └─ ...
-```
-
 ### Vite
-
-1. Update your `main.jsx` file:
-
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { AchievementProvider, TrophyNotificationToast } from 'react-trophies';
-import App from './App.jsx';
-import './index.css';
-import { achievementConfig } from './lib/achievements/config';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <AchievementProvider config={achievementConfig}>
-      <TrophyNotificationToast position="bottom-right" playSound={true} />
-      <App />
-    </AchievementProvider>
-  </React.StrictMode>
-);
-```
-
-2. Place sound files in the `public` directory to ensure they're served correctly:
-
-```
-public/
-├─ sounds/
-│  ├─ achievement.mp3
-│  └─ ...
-```
-
-### Gatsby
 
 1. Create a wrapper component in `src/components/AchievementWrapper.jsx`:
 
 ```jsx
 import React from 'react';
-import { AchievementProvider, TrophyNotificationToast } from 'react-trophies';
+import { AchievementProvider } from 'react-trophies';
+import { Toaster } from 'sonner';
 import { achievementConfig } from '../lib/achievements/config';
 
 export function AchievementWrapper({ children }) {
@@ -216,26 +180,64 @@ export function AchievementWrapper({ children }) {
   }, []);
   
   // Only render on the client side to avoid SSR issues
-  if (!isBrowser) return <>{children}</>;
+  if (!isBrowser) {
+    return <>{children}</>;
+  }
   
   return (
-    <AchievementProvider config={achievementConfig}>
-      <TrophyNotificationToast position="bottom-right" playSound={true} />
+    <AchievementProvider 
+      config={achievementConfig}
+      storageKey="vite-app-achievements"
+      enableToasts={true}
+    >
       {children}
+      <Toaster position="bottom-right" richColors />
     </AchievementProvider>
   );
 }
 ```
 
-2. Update your `gatsby-browser.js` file:
+### Custom Toast Styling
+
+You can customize the toast appearance by configuring the Toaster component:
 
 ```jsx
-import React from 'react';
-import { AchievementWrapper } from './src/components/AchievementWrapper';
+<Toaster 
+  position="top-center"
+  richColors
+  closeButton
+  theme="dark" 
+  visibleToasts={3}
+  toastOptions={{
+    duration: 5000,
+    className: "my-custom-toast-class"
+  }}
+/>
+```
 
-export const wrapRootElement = ({ element }) => {
-  return <AchievementWrapper>{element}</AchievementWrapper>;
+For more advanced customization, you can use the exported `AchievementToastContent` component to define custom achievement toasts:
+
+```jsx
+import { AchievementToastContent } from 'react-trophies';
+import { toast } from 'sonner';
+
+// In your custom component
+const achievement = {
+  achievementId: 'custom-achievement',
+  achievementTitle: 'Custom Achievement',
+  achievementDescription: "You've unlocked a special achievement!",
+  achievementIconKey: 'custom'
 };
+
+const icons = { 'custom': '🏆' };
+
+toast.custom(() => (
+  <AchievementToastContent 
+    achievement={achievement}
+    icons={icons}
+    toastTitle="Trophy Unlocked!"
+  />
+), { duration: 6000 })
 ```
 
 ## Advanced Configuration
@@ -358,58 +360,89 @@ function ProfileComponent() {
 
 ## Troubleshooting
 
-### Issues with Sound Playback
+### Toast Notifications Setup
 
-If sound isn't playing when achievements unlock:
+React-Trophies uses Sonner for toast notifications. Unlike previous versions, this approach avoids conflicts with user applications that also use Sonner.
 
-1. Verify that the sound files exist at the correct path.
-2. For Next.js and other frameworks that use file-based routing, ensure sounds are in the `public` directory.
-3. Check if browser policies require user interaction before playing sounds.
-4. Try registering the sound manually with a direct URL path:
+> ⚠️ **WARNING: AVOIDING DUPLICATE TOASTS**
+> 
+> If your application already uses Sonner, follow these guidelines to avoid multiple toast instances:
+> 
+> 1. **ALWAYS add only ONE `<Toaster />` component** in your application root
+> 2. **NEVER nest multiple `<Toaster />` components** at different levels
+> 3. Make sure the `<Toaster />` component is a sibling to your main app wrapped with `<AchievementProvider>`
+>
+> ```jsx
+> // CORRECT SETUP ✅
+> <>
+>   <AchievementProvider config={achievementConfig}>
+>     <YourApp />
+>   </AchievementProvider>
+>   <Toaster /> {/* Single Toaster outside the provider */}
+> </>
+>
+> // INCORRECT SETUP ❌
+> <AchievementProvider config={achievementConfig}>
+>   <YourApp />
+>   <Toaster /> {/* Don't put Toaster inside provider */}
+>   {/* Don't add multiple Toaster components */}
+> </AchievementProvider>
+> ```
+
+1. Add the Sonner `<Toaster />` component to your application:
 
 ```jsx
-import { soundManager } from 'react-trophies';
-soundManager.registerSound('default', '/sounds/achievement.mp3');
+import { Toaster } from 'sonner';
+
+// In your root layout or app component
+function App() {
+  return (
+    <>
+      <YourAppContent />
+      <Toaster position="top-right" richColors />
+    </>
+  );
+}
 ```
 
-### Component Styling Issues
+2. The AchievementProvider will use this Toaster component to display achievement notifications
 
-If components don't match your app's design:
-
-1. Use the `ThemeProvider` to customize the color scheme.
-2. Override component styles with your own CSS:
+3. You can customize the toast title using the `toastTitle` prop:
 
 ```jsx
-<TrophyCard
-  achievement={achievement}
-  style={{
-    border: '2px solid gold',
-    borderRadius: '10px',
-    backgroundColor: '#333'
-  }}
-/>
+<AchievementProvider 
+  config={achievementConfig}
+  toastTitle="Trophy Unlocked!" // Default is "Achievement Unlocked!"
+  enableToasts={true} // Default is true
+>
+  {children}
+</AchievementProvider>
 ```
+
+4. If toast notifications aren't appearing when achievements are unlocked:
+   - Make sure you have a `<Toaster />` component from sonner properly rendered in your application
+   - Verify that `enableToasts={true}` is set on your AchievementProvider (it's true by default)
+   - Ensure that the achievement conditions are actually being met
 
 ### SSR Compatibility
 
 For server-side rendering frameworks:
 
-1. Always wrap state-dependent code in useEffect or conditionally render based on browser detection.
-2. Avoid direct localStorage or window access during rendering.
-3. For Next.js, use the dynamic import with `{ ssr: false }` for components that rely on browser APIs:
+1. Always wrap state-dependent code in useEffect or conditionally render based on browser detection
+2. For Next.js, use dynamic import with `{ ssr: false }` for the Toaster component:
 
 ```jsx
 import dynamic from 'next/dynamic';
 
-const AchievementToastNoSSR = dynamic(
-  () => import('react-trophies').then((mod) => mod.AchievementToast),
+const ToasterNoSSR = dynamic(
+  () => import('sonner').then((mod) => mod.Toaster),
   { ssr: false }
 );
 
 function Page() {
   return (
     <div>
-      <AchievementToastNoSSR position="bottom-right" />
+      <ToasterNoSSR position="bottom-right" />
       {/* Rest of your page */}
     </div>
   );

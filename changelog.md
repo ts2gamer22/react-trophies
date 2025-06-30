@@ -1,5 +1,52 @@
 # Changelog - React Trophies
 
+## v2.1.0 (2025-06-30)
+
+### Major Architecture Improvements
+
+- **Toast Notification Architecture Redesign**:
+  - Implemented the render prop pattern for toast notifications
+  - Created new `AchievementToastContent` component to separate toast content from toast rendering
+  - Fixed conflicts with applications that also use Sonner
+  - Added `toastTitle` prop to `AchievementProvider` for customizing the title text
+  - Enhanced CSS class names with `rt-` prefix for better styling targeting
+  - Added `data-testid` attributes to improve component testability
+
+### Documentation
+
+- Updated integration guide with improved Sonner integration instructions
+- Added examples for the new toast architecture
+- Added clear warning about the Toaster component requirement
+
+## v2.0.0 (2025-06-30)
+
+### BREAKING CHANGES
+
+- **Toast Handling System Redesign**:
+  - Removed built-in `<Toaster />` component rendering from `AchievementProvider`
+  - Deprecated `TrophyNotificationToast` component
+  - Users must now add their own `<Toaster />` component from sonner in their app layout
+  - Added warning when toasts are triggered but no Toaster component is found in DOM
+  
+### New Features
+
+- **Improved Toast Architecture**:
+  - Added `TrophyToast` utility export as a wrapper around sonner's toast function
+  - Added `isToasterMounted` helper function to detect if a Toaster is in the DOM
+  - Better separation of concerns: library handles logic, app handles UI rendering
+  
+### Documentation
+
+- Updated documentation to reflect new toast handling approach
+- Added clearer guidance on sonner integration in host applications
+- Emphasized sonner as a peer dependency
+
+### Technical Changes
+
+- Added the `utils/TrophyToast.ts` utility module
+- Improved code organization and maintainability
+- Removed unnecessary console.log statements
+
 ## v1.4.2 (2025-06-29)
 
 ### Fixes & Improvements

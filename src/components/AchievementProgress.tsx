@@ -63,8 +63,8 @@ const AchievementProgress: React.FC<AchievementProgressProps> = ({
   customStyles = {},
   onComplete
 }) => {
-  // Use the achievement's targetValue if one isn't explicitly provided
-  const finalTargetValue = targetValue || achievement.targetValue || 100;
+  // Use the provided targetValue or default to 100
+  const finalTargetValue = targetValue || 100;
   
   // Calculate progress percentage
   const percentage = Math.min(100, Math.round((currentValue / finalTargetValue) * 100));
