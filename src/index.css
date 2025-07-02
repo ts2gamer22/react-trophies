@@ -1,0 +1,6 @@
+/* Tailwind CSS directive imports */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Any custom global styles can go below this line */

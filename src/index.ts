@@ -6,20 +6,20 @@ import type {
     AchievementUnlockCondition,
 } from './types';
 import ConfettiWrapper from './components/ConfettiWrapper';
+import TrophyModal from './components/TrophyModal';
 import { useAchievementState } from './hooks/useAchievementState';
 import { useAchievementStore } from './store/useAchievementStore';
 import { toast as TrophyToast, isToasterMounted } from './utils/TrophyToast';
-import { AchievementToastContent } from './components/AchievementToastContent';
 
 export {
     AchievementProvider,
     useAchievementContext as useAchievement,
     ConfettiWrapper,
+    TrophyModal,
     useAchievementState,
     useAchievementStore,
     TrophyToast,
     isToasterMounted,
-    AchievementToastContent,
 };
 
 export type {

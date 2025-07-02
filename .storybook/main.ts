@@ -1,4 +1,5 @@
 import type { StorybookConfig } from "@storybook/react-webpack5";
+import path from 'path';
 
 const config: StorybookConfig = {
   stories: [
@@ -26,7 +27,17 @@ const config: StorybookConfig = {
   typescript: {
     reactDocgen: 'react-docgen-typescript',
     check: false,
-  }
+  },
+  webpackFinal: async (config) => {
+    // Handle path aliases
+    if (config.resolve) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@': path.resolve(__dirname, '../src'),
+      };
+    }
+    return config;
+  },
 };
 
 export default config;

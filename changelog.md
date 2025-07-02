@@ -1,5 +1,50 @@
 # Changelog - React Trophies
 
+## v2.2.0 (2025-07-02)
+
+### New Features
+
+- **Enhanced TrophyModal Component**:
+  - Added achievement icons display for visual distinction
+  - Added green styling for unlocked achievements with celebration emoji
+  - Fixed duplicate button issue when using custom triggers
+  - Added extensive styling customization options with new props:
+    - `modalClassName`: For styling the modal container
+    - `cardClassName`: For styling all achievement cards
+    - `unlockedCardClassName`: For styling unlocked achievement cards
+    - `iconClassName`: For styling achievement icons
+
+- **Dependency Management**:
+  - Added support for sonner v2.x (^1.4.41 || ^2.0.0)
+  - Simplified Shadcn UI integration with comprehensive documentation
+  - Added proper icon support for achievement visualization
+
+### Documentation
+
+- Added comprehensive Storybook examples for TrophyModal customization
+- Updated integration guide with TrophyModal styling instructions
+- Added detailed sections about dependencies and styling options
+
+## v2.1.2 (2025-06-30)
+
+### Bug Fixes
+
+- **Performance Optimization**:
+  - Fixed infinite render loop issue in AchievementProvider using proper function memoization
+  - Implemented useCallback and useMemo for context value and functions
+  - Added mergedIcons memoization to prevent unnecessary re-renders
+  - Fixed TypeScript errors related to icon indexing
+  - Improved enableToasts flag handling in notification effect
+
+## v2.1.1 (2025-06-30)
+
+### Bug Fixes
+
+- **Toast Styling**:
+  - Added toastStyles prop to AchievementProvider for custom toast styling
+  - Added useDefaultToastStyles prop to optionally use Sonner's default toast styling
+  - Updated documentation for new styling options
+
 ## v2.1.0 (2025-06-30)
 
 ### Major Architecture Improvements

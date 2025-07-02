@@ -6,6 +6,8 @@ A comprehensive achievement and trophy system for React applications with sound 
 
 Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
 
+> **v2.2.0 Update**: Enhanced TrophyModal component with achievement icons, customizable styling, and improved UI! Unlocked achievements now display with celebratory styling and full Tailwind CSS customization. See the [TrophyModal](#trophymodal-component) documentation for details.
+
 > **v2.1.0 Update**: Improved toast architecture! React-trophies now uses a render prop pattern with Sonner, automatically disabling its internal toast handling when detecting a global Toaster component. This eliminates conflicts when multiple parts of your application use Sonner.
 
 ## Features
@@ -19,6 +21,7 @@ Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
 - 🎨 **Customizable Theming** for all components
 - 📱 **Responsive Design** for all screen sizes
 - 🔄 **Automatic Integration** with existing toast implementations
+- 🖼️ **Achievement Showcase** with TrophyModal component
 
 ## Installation
 
@@ -26,7 +29,7 @@ Try it out: [StackBlitz Demo](https://stackblitz.com/edit/vitejs-vite-rymmutrx)
 # Install the package
 npm install react-trophies
 
-# Install peer dependencies
+# Install core peer dependencies
 npm install howler sonner zustand react-confetti react-use
 ```
 
@@ -124,100 +127,111 @@ The `useAchievement` hook returns:
 | `enableConfetti` | `boolean` | Optional. Toggle confetti celebrations on/off. Default: `true` |
 | `enableToasts` | `boolean` | Optional. Toggle toast notifications on/off. Default: `true` |
 
-## TypeScript Support
+## TrophyModal Component
 
-All types are exported from the package:
+The TrophyModal component provides a beautiful way to showcase achievements with progress bars, sorted with unlocked achievements first. It displays unlocked achievements with celebratory styling and includes achievement icons for better visual distinction. The component is highly customizable with full Tailwind CSS support.
 
-```typescript
-import type { 
-  AchievementConfiguration,
-  AchievementDetails,
-  AchievementMetricValue 
-} from 'react-trophies';
+### Installation
+
+The TrophyModal component requires Shadcn UI components. You can either install individual Radix UI primitives or use Shadcn UI's CLI for a complete setup (recommended):
+
+#### Option 1: Individual Radix UI primitives
+
+```bash
+npm install @radix-ui/react-dialog @radix-ui/react-progress @radix-ui/react-scroll-area
 ```
 
-## Peer Dependencies
+#### Option 2: Shadcn UI (Recommended)
 
-This package relies on the following peer dependencies:
+```bash
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add dialog progress scroll-area button
+```
 
-- `howler` (^2.2.4): For sound effects
-- `sonner` (^1.4.41): For toast notifications
-- `zustand` (^4.0.0 || ^5.0.0): For state management
-- `react-confetti` (^6.0.0): For celebration effects
-- `react-use` (^17.0.0): For utility hooks
-- `react` and `react-dom` (^18.0.0 || ^19.0.0-rc.0): React core
-
-## Complete Example
-
-Here's a complete example of a click counter game with achievements:
+### Usage
 
 ```jsx
-import { useState } from 'react';
+import { TrophyModal } from 'react-trophies';
 import { AchievementProvider, useAchievement } from 'react-trophies';
-import type { AchievementConfiguration } from 'react-trophies';
-
-// Component that uses the achievement system
-function ClickGame() {
-  const [clicks, setClicks] = useState(0);
-  const { updateMetrics } = useAchievement();
-
-  // Handle click and update the 'clicks' metric
-  const handleClick = () => {
-    const newClickCount = clicks + 1;
-    setClicks(newClickCount);
-    
-    // Update the achievement metric - must be an array for each metric
-    updateMetrics({ clicks: [newClickCount] });
-  };
-
-  return (
-    <div>
-      <p>Total Clicks: {clicks}</p>
-      <button onClick={handleClick}>Click Me!</button>
-    </div>
-  );
-}
 
 function App() {
-  // Define achievement configuration
-  const achievementConfig: AchievementConfiguration = {
-    // The 'clicks' metric will trigger these achievements
+  // Your achievement configuration
+  const achievementConfig = {
     clicks: [
       {
-        // Achievement for first click
-        isConditionMet: (value) => typeof value === 'number' && value >= 1,
+        isConditionMet: (value) => value >= 10,
         achievementDetails: {
-          achievementId: 'first-click',
-          achievementTitle: 'First Click!',
-          achievementDescription: 'You made your first click',
-          achievementIconKey: 'trophy'
-        }
-      },
-      {
-        // Achievement for 5 clicks
-        isConditionMet: (value) => typeof value === 'number' && value >= 5,
-        achievementDetails: {
-          achievementId: 'getting-started',
-          achievementTitle: 'Getting Started',
-          achievementDescription: 'Click 5 times',
-          achievementIconKey: 'star'
+          achievementId: 'click-master',
+          achievementTitle: 'Click Master',
+          achievementDescription: 'Click 10 times',
+          achievementIconKey: 'trophy', // Icon key that displays as emoji in the card
+          targetValue: 10 // Used for progress calculation
         }
       }
+      // More achievements...
     ]
   };
-
+  
+  // Your current metrics
+  const currentMetrics = {
+    clicks: [5] // User has clicked 5 times (50% progress)
+  };
+  
   return (
-    <AchievementProvider 
-      config={achievementConfig}
-      storageKey="click-game-achievements"
-      badgesButtonPosition="top-right"
-      achievementSoundUrl="/achievement-sound.mp3"
-    >
-      <ClickGame />
+    <AchievementProvider config={achievementConfig}>
+      {/* Rest of your app */}
+      
+      {/* Basic usage - requires config and metrics as props */}
+      <TrophyModal 
+        config={achievementConfig}
+        metrics={currentMetrics}
+        buttonPosition="bottom-right" // Optional: position of the trigger button
+        modalTitle="Achievement Collection" // Optional: custom title
+        // New customization options in v2.2.0
+        modalClassName="bg-slate-900 text-white" // Custom modal styling
+        cardClassName="bg-slate-800 border-slate-600" // Base card styling
+        unlockedCardClassName="border-green-500 bg-green-500/10" // Unlocked card styling
+        iconClassName="text-amber-400 text-2xl" // Achievement icon styling
+      />
     </AchievementProvider>
   );
 }
+
+// With a custom trigger element
+function AppWithCustomTrigger() {
+  const achievementConfig = { /* ... */ };
+  const currentMetrics = { /* ... */ };
+  
+  return (
+    <div>
+      <TrophyModal 
+        config={achievementConfig}
+        metrics={currentMetrics}
+        customTrigger={
+          <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg">
+            <span>🏆</span> Custom Achievements Button
+          </button>
+        }
+        // Style customizations work with custom triggers too
+        modalClassName="bg-indigo-950 text-white border-indigo-800"
+        cardClassName="bg-indigo-900 border-indigo-700"
+        unlockedCardClassName="border-yellow-500 bg-yellow-500/10"
+      />
+    </div>
+  );
+}
 ```
+
+### Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `config` | `AchievementConfiguration` | Required. The same achievement configuration used in AchievementProvider |
+| `metrics` | `Record<string, number\|string\|number[]>` | Required. Current metrics values for progress calculation |
+| `trigger` | `React.ReactNode` | Optional. Custom element to trigger the modal |
+| `modalTitle` | `string` | Optional. Custom title for the modal (default: 'Your Trophies') |
+| `className` | `string` | Optional. Additional class names for the trigger button |
+| `buttonPosition` | `'top-left'\|'top-right'\|'bottom-left'\|'bottom-right'` | Optional. Position of the trigger button (default: 'bottom-right') |
 
 ## Available Icons
 
@@ -304,6 +318,96 @@ function showCustomAchievementToast(achievement) {
       achievement={achievement} 
       title="Custom Achievement!" 
     />
+  );
+}
+```
+
+## Peer Dependencies
+
+This package relies on the following peer dependencies:
+
+- `howler` (^2.2.4): For sound effects
+- `sonner` (^1.4.41): For toast notifications
+- `zustand` (^4.0.0 || ^5.0.0): For state management
+- `react-confetti` (^6.0.0): For celebration effects
+- `react-use` (^17.0.0): For utility hooks
+
+For the TrophyModal component (optional):
+- `@radix-ui/react-dialog` (^1.0.0): For dialog functionality
+- `@radix-ui/react-progress` (^1.0.0): For progress bars
+- `@radix-ui/react-scroll-area` (^1.0.0): For scrollable content
+- `lucide-react` (optional): For icons
+
+These dependencies are marked as optional peers, so they are only required if you use the TrophyModal component.
+
+## Example Implementation
+
+Here's a complete example of a click counter game with achievements:
+
+```jsx
+import { useState } from 'react';
+import { AchievementProvider, useAchievement } from 'react-trophies';
+import type { AchievementConfiguration } from 'react-trophies';
+
+// Component that uses the achievement system
+function ClickGame() {
+  const [clicks, setClicks] = useState(0);
+  const { updateMetrics } = useAchievement();
+
+  // Handle click and update the 'clicks' metric
+  const handleClick = () => {
+    const newClickCount = clicks + 1;
+    setClicks(newClickCount);
+    
+    // Update the achievement metric - must be an array for each metric
+    updateMetrics({ clicks: [newClickCount] });
+  };
+
+  return (
+    <div>
+      <p>Total Clicks: {clicks}</p>
+      <button onClick={handleClick}>Click Me!</button>
+    </div>
+  );
+}
+
+function App() {
+  // Define achievement configuration
+  const achievementConfig: AchievementConfiguration = {
+    // The 'clicks' metric will trigger these achievements
+    clicks: [
+      {
+        // Achievement for first click
+        isConditionMet: (value) => typeof value === 'number' && value >= 1,
+        achievementDetails: {
+          achievementId: 'first-click',
+          achievementTitle: 'First Click!',
+          achievementDescription: 'You made your first click',
+          achievementIconKey: 'trophy'
+        }
+      },
+      {
+        // Achievement for 5 clicks
+        isConditionMet: (value) => typeof value === 'number' && value >= 5,
+        achievementDetails: {
+          achievementId: 'getting-started',
+          achievementTitle: 'Getting Started',
+          achievementDescription: 'Click 5 times',
+          achievementIconKey: 'star'
+        }
+      }
+    ]
+  };
+
+  return (
+    <AchievementProvider 
+      config={achievementConfig}
+      storageKey="click-game-achievements"
+      badgesButtonPosition="top-right"
+      achievementSoundUrl="/achievement-sound.mp3"
+    >
+      <ClickGame />
+    </AchievementProvider>
   );
 }
 ```

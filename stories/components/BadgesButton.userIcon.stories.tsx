@@ -4,7 +4,7 @@ import { StoryFn, Meta } from '@storybook/react';
 import BadgesButton from '../../src/components/BadgesButton';
 import { AchievementDetails } from '../../src/types';
 import { defaultStyles } from '../../src/defaultStyles';
-import MenuIcon from '@mui/icons-material/Menu';
+import { Menu } from 'lucide-react';
 
 export default {
     title: 'Components/BadgesButton',
@@ -30,5 +30,5 @@ WithUserIcon.args = {
             achievementIconKey: 'default',
         },
     ],
-    icon: <MenuIcon />,
+    icon: <Menu />,
 };

@@ -10,6 +10,7 @@ import {
     AchievementMetrics,
     AchievementConfiguration,
     AchievementUnlockCondition,
+    AchievementContextType,
 } from '../types';
 import { useAchievementStore } from '../store/useAchievementStore';
 import BadgesButton from '../components/BadgesButton';
@@ -18,10 +19,6 @@ import ConfettiWrapper from '../components/ConfettiWrapper';
 import { defaultStyles } from '../defaultStyles';
 import { defaultAchievementIcons } from '../assets/defaultIcons';
 import { AchievementToastContent } from '../components/AchievementToastContent';
-
-import {
-    AchievementContextType,
-} from '../types';
 
 export const AchievementContext = React.createContext<AchievementContextType | undefined>(undefined);
 
@@ -216,6 +213,12 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
 
     // No longer need to check for Toaster component as we're using a different approach
 
+    // Merge custom icons with default icons for consistent access
+    const mergedIcons = useMemo(() => ({
+        ...defaultAchievementIcons,
+        ...icons,
+    }), [icons]);
+    
     useEffect(() => {
         if (notifications.length > 0) {
             // Play sound if enabled
@@ -234,13 +237,9 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
                     console.error('Error playing achievement sound:', error);
                 }
             }
-
-            // Show toast notifications if enabled
+            
+            // Display each achievement notification
             if (enableToasts) {
-                // Create a merged icons object with defaults and custom icons
-                const mergedIcons = { ...defaultAchievementIcons, ...icons };
-                
-                // Display each achievement notification
                 notifications.forEach(achievement => {
                     if (useDefaultToastStyles) {
                         // Use default Sonner toast styling
@@ -272,45 +271,59 @@ const AchievementProvider: React.FC<AchievementProviderProps> = ({
             }
 
             clearNotifications();
-            
-            // Show confetti if enabled
+
             if (enableConfetti) {
                 setShowConfetti(true);
                 setTimeout(() => setShowConfetti(false), 4000);
             }
         }
-    }, [notifications, icons, clearNotifications, achievementSoundUrl, enableSound, enableConfetti, enableToasts, toastTitle]);
+    }, [notifications, enableSound, achievementSoundUrl, clearNotifications, enableConfetti, enableToasts, icons, toastTitle, toastStyles, useDefaultToastStyles]);
 
-    const showBadgesModal = () => setShowBadges(true);
+    const handleUpdateMetrics = useCallback((newMetrics: AchievementMetrics | ((prevMetrics: AchievementMetrics) => AchievementMetrics)) => {
+        if (!isInitialized) return;
+        
+        const currentState = useAchievementStore.getState();
+        let updatedMetrics;
+        if (typeof newMetrics === 'function') {
+            updatedMetrics = newMetrics(currentState.metrics);
+        } else {
+            updatedMetrics = Object.entries(newMetrics).reduce((acc, [key, value]) => ({
+                ...acc,
+                [key]: Array.isArray(currentState.metrics[key]) 
+                    ? [...currentState.metrics[key], ...(Array.isArray(value) ? value : [value])]
+                    : (Array.isArray(value) ? value : [value])
+            }), { ...currentState.metrics });
+        }
+        setMetrics(updatedMetrics);
+    }, [isInitialized, setMetrics]);
 
+    const handleResetStorage = useCallback(() => {
+        if (storageKey) {
+            localStorage.removeItem(storageKey);
+        }
+        resetAchievements();
+    }, [storageKey, resetAchievements]);
+
+    const contextValue = useMemo(() => ({
+        updateMetrics: handleUpdateMetrics,
+        unlockedAchievements: unlockedAchievementIds,
+        resetStorage: handleResetStorage,
+        notifications: notifications,
+        clearNotifications: clearNotifications,
+    }), [
+        handleUpdateMetrics,
+        unlockedAchievementIds,
+        handleResetStorage,
+        notifications,
+        clearNotifications
+    ]);
+
+    const showBadgesModal = useCallback(() => {
+        setShowBadges(true);
+    }, []);
+    
     return (
-        <AchievementContext.Provider
-            value={{
-                updateMetrics: (newMetrics) => {
-                    if (!isInitialized) return;
-                    if (typeof newMetrics === 'function') {
-                        const updatedMetrics = newMetrics(metrics);
-                        setMetrics(updatedMetrics);
-                    } else {
-                        // Properly merge arrays for each metric key
-                        const mergedMetrics = Object.entries(newMetrics).reduce((acc, [key, value]) => ({
-                            ...acc,
-                            [key]: Array.isArray(metrics[key]) 
-                                ? [...metrics[key], ...value]  
-                                : value  
-                        }), { ...metrics });
-                        setMetrics(mergedMetrics);
-                    }
-                },
-                unlockedAchievements: unlockedAchievementIds,
-                resetStorage: () => {
-                    localStorage.removeItem(storageKey);
-                    resetAchievements();
-                },
-                notifications: notifications,
-                clearNotifications: clearNotifications,
-            }}
-        >
+        <AchievementContext.Provider value={contextValue}>
             {children}
             {enableConfetti && <ConfettiWrapper show={showConfetti} />}
             <BadgesButton

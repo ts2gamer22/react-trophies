@@ -6,7 +6,8 @@ This guide provides comprehensive instructions for integrating the `react-trophi
 
 1. [Basic Installation](#basic-installation)
 2. [Core Components](#core-components)
-3. [Framework-Specific Integration](#framework-specific-integration)
+3. [TrophyModal Component](#trophymodal-component)
+4. [Framework-Specific Integration](#framework-specific-integration)
    - [Create React App](#create-react-app)
    - [Next.js](#nextjs)
    - [Vite](#vite)
@@ -40,12 +41,120 @@ The React-Trophies package provides several components to build a complete achie
 
 ### Optional Components
 
+- **TrophyModal**: Modal dialog for displaying all achievements with progress bars
 - **TrophyCard**: Individual achievement card display
 - **TrophyGrid**: Grid layout for displaying multiple achievements
 - **TrophyShowcase**: Horizontal showcase of selected achievements
 - **AchievementProgress**: Progress bar for tracking achievement completion
 - **TrophyStats**: Statistics display for achievement progress
 - **ThemeProvider**: Theme management for consistent styling
+
+## TrophyModal Component
+
+The TrophyModal component displays achievements with progress bars, sorted with unlocked achievements first. It provides extensive styling customization options through props.
+
+### Required Dependencies
+
+TrophyModal relies on Shadcn UI components. You can either install individual Radix UI primitives or use Shadcn UI for a complete solution.
+
+#### Option 1: Install Individual Radix UI Primitives
+
+```bash
+npm install @radix-ui/react-dialog @radix-ui/react-progress @radix-ui/react-scroll-area
+```
+
+#### Option 2: Install Shadcn UI (Recommended)
+
+For a more complete UI solution with consistent styling:
+
+```bash
+npx shadcn-ui@latest init
+```
+
+Then add the required components:
+
+```bash
+npx shadcn-ui@latest add dialog progress scroll-area button
+```
+
+### Basic Usage
+
+```jsx
+import { TrophyModal } from 'react-trophies';
+import { useAchievement } from 'react-trophies';
+
+function AchievementsPage() {
+  const { metrics, config } = useAchievement();
+  
+  return (
+    <div>
+      <TrophyModal 
+        config={config}
+        metrics={metrics}
+        modalTitle="My Achievements" 
+      />
+    </div>
+  );
+}
+```
+
+### Custom Trigger Button
+
+```jsx
+import { TrophyModal } from 'react-trophies';
+import { useAchievement } from 'react-trophies';
+import { Trophy } from 'lucide-react'; // Optional icon
+
+function AchievementsPage() {
+  const { metrics, config } = useAchievement();
+  
+  return (
+    <div>
+      <TrophyModal 
+        config={config}
+        metrics={metrics}
+        modalTitle="My Achievements" 
+        customTrigger={
+          <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg">
+            <Trophy size={18} />
+            <span>View Trophies</span>
+          </button>
+        }
+      />
+    </div>
+  );
+}
+```
+
+### Styling Customization
+
+The TrophyModal component accepts several className props for styling customization:
+
+```jsx
+<TrophyModal 
+  config={config}
+  metrics={metrics}
+  modalTitle="My Achievements"
+  // Styling customization props
+  modalClassName="bg-slate-900 text-white border-slate-700" 
+  cardClassName="bg-slate-800 border-slate-700"
+  unlockedCardClassName="border-amber-500 bg-amber-500/10"
+  iconClassName="text-amber-400 text-2xl"
+/>
+```
+
+### Available Customization Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `modalClassName` | `string` | CSS classes for the modal dialog container |
+| `cardClassName` | `string` | CSS classes applied to all achievement cards |
+| `unlockedCardClassName` | `string` | CSS classes for unlocked achievement cards |
+| `iconClassName` | `string` | CSS classes for achievement icons |
+| `customTrigger` | `ReactNode` | Custom button or element to trigger the modal |
+| `modalTitle` | `string` | Title displayed at the top of the modal |
+| `buttonLabel` | `string` | Text for the default trigger button if no customTrigger provided |
+| `buttonPosition` | `string` | Position of the trigger button: 'top-left', 'top-right', 'bottom-left', 'bottom-right' |
 
 ## Framework-Specific Integration
 
@@ -238,6 +347,192 @@ toast.custom(() => (
     toastTitle="Trophy Unlocked!"
   />
 ), { duration: 6000 })
+```
+
+## Creating Achievements
+
+To effectively implement achievements in your application, follow this step-by-step guide:
+
+### 1. Achievement Configuration Structure
+
+Achievements are organized by metric types. Each metric can have multiple achievement conditions:
+
+```javascript
+const achievementConfig = {
+  // Metric type: clicks
+  clicks: [
+    // Achievement 1
+    {
+      // Condition function
+      isConditionMet: (value) => typeof value === 'number' && value >= 10,
+      // Achievement details
+      achievementDetails: {
+        achievementId: 'beginner-clicker',
+        achievementTitle: 'Beginner Clicker',
+        achievementDescription: 'Click the button 10 times',
+        achievementIconKey: 'click' // Maps to your icons
+      }
+    },
+    // Achievement 2
+    {
+      isConditionMet: (value) => typeof value === 'number' && value >= 50,
+      achievementDetails: {
+        achievementId: 'advanced-clicker',
+        achievementTitle: 'Advanced Clicker',
+        achievementDescription: 'Click the button 50 times',
+        achievementIconKey: 'click-gold'
+      }
+    }
+  ],
+  // Another metric type
+  nightOwl: [
+    {
+      isConditionMet: (value) => typeof value === 'boolean' && value === true,
+      achievementDetails: {
+        achievementId: 'night-owl',
+        achievementTitle: 'Night Owl',
+        achievementDescription: 'Use the app between midnight and 5am',
+        achievementIconKey: 'owl'
+      }
+    }
+  ]
+}
+```
+
+### 2. Tracking Metrics in Components
+
+Use the `updateMetrics` function from the achievement context to track user actions:
+
+```jsx
+import { useAchievementContext } from 'react-trophies';
+
+function ClickerButton() {
+  const { updateMetrics } = useAchievementContext();
+  const [clickCount, setClickCount] = useState(0);
+  
+  const handleClick = () => {
+    // Update local state
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    
+    // Send metric to achievement system
+    updateMetrics({ clicks: newCount });
+    
+    // Check time-based conditions
+    const currentHour = new Date().getHours();
+    if (currentHour >= 0 && currentHour < 5) {
+      updateMetrics({ nightOwl: true });
+    }
+  };
+  
+  return <button onClick={handleClick}>Click Me! ({clickCount})</button>;
+}
+```
+
+### 3. Implementing Complex Tracking Patterns
+
+For more complex metrics like tracking sequences or time-based patterns:
+
+```jsx
+// Track rapid clicks within a time window
+function RapidClickerGame() {
+  const { updateMetrics } = useAchievementContext();
+  const [clickCount, setClickCount] = useState(0);
+  const recentClicks = useRef([]);
+  
+  // Constants
+  const RAPID_CLICK_WINDOW = 5000; // 5 seconds
+  const RAPID_CLICK_THRESHOLD = 10; // 10 clicks
+  
+  const handleClick = () => {
+    setClickCount(prev => prev + 1);
+    updateMetrics({ clicks: clickCount + 1 });
+    
+    const now = Date.now();
+    
+    // Add current click timestamp
+    recentClicks.current = [
+      ...recentClicks.current,
+      now
+    ];
+    
+    // Remove clicks older than window
+    recentClicks.current = recentClicks.current.filter(
+      time => now - time < RAPID_CLICK_WINDOW
+    );
+    
+    // Check if threshold reached for rapid clicking
+    if (recentClicks.current.length >= RAPID_CLICK_THRESHOLD) {
+      updateMetrics({ rapidClicker: true });
+    }
+  };
+  
+  return <button onClick={handleClick}>Rapid Click!</button>;
+}
+```
+
+### 4. Creating an AchievementWrapper Component (Recommended)
+
+For cleaner code organization, create a wrapper component:
+
+```jsx
+// AchievementWrapper.jsx
+import { AchievementProvider } from 'react-trophies';
+import { Toaster } from 'sonner';
+import achievementConfig from './achievementConfig';  
+
+export function AchievementWrapper({ children }) {
+  return (
+    <>
+      <AchievementProvider
+        config={achievementConfig}
+        enableConfetti={true}
+        achievementSoundUrl="/sounds/achievement-unlocked.mp3"
+        toastTitle="Achievement Unlocked!"
+      >
+        {children}
+      </AchievementProvider>
+      <Toaster position="top-right" />
+    </>
+  );
+}
+
+// App.jsx
+import { AchievementWrapper } from './AchievementWrapper';
+
+function App() {
+  return (
+    <AchievementWrapper>
+      <YourAppContent />
+    </AchievementWrapper>
+  );
+}
+```
+
+### 5. Displaying Unlocked Achievements
+
+Display a list of achievements the user has unlocked:
+
+```jsx
+function AchievementsList() {
+  const { unlockedAchievements } = useAchievementContext();
+  // Note: unlockedAchievements contains achievementIds, not full achievement objects
+  
+  return (
+    <div className="achievements-list">
+      <h2>Your Achievements</h2>
+      {unlockedAchievements.length > 0 ? (
+        unlockedAchievements.map(id => (
+          <div key={id} className="achievement-item">
+            Achievement ID: {id}
+          </div>
+        ))
+      ) : (
+        <p>No achievements unlocked yet</p>
+      )}
+    </div>
+  );
+}
 ```
 
 ## Advanced Configuration
